@@ -31,14 +31,14 @@ export function StickyAudioPlayer() {
     setIsClient(true);
   }, []);
 
-  // Effect for initializing a test track (runs only client-side)
+  // Effect for initializing the live radio track (runs only client-side)
   useEffect(() => {
     if (isClient && !currentTrack && playlist.length === 0) {
       dispatch(setCurrentTrack({ 
-        id: 'test1', 
-        title: 'Radio Hub Intro', 
-        artist: 'Haryanvi Beats', 
-        url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', 
+        id: 'liveRadioHaryanvi', 
+        title: 'Radio Haryanvi Live', 
+        artist: 'Live Stream', 
+        url: 'http://weareharyanvi.com:8000/listen', 
         coverArt: 'https://placehold.co/100x100.png' 
       }));
     }
@@ -63,20 +63,23 @@ export function StickyAudioPlayer() {
       src: [currentTrack.url],
       html5: true, // Recommended for streaming and larger files
       volume: isMuted ? 0 : volume,
+      format: ['mp3', 'aac'], // Specify formats if known, good for live streams
       onload: () => {
+        // For live streams, duration might be Infinity or not applicable in the same way.
+        // Howler might report a very large number or 0.
         dispatch(setDuration(newHowl.duration()));
       },
       onplay: () => {
-        // This can be used to sync if Howler starts playing for other reasons
-        // For now, Redux state `isPlaying` drives this.
         if (!isPlaying) dispatch(play()); 
       },
       onpause: () => {
-        // This can be used to sync if Howler pauses for other reasons
         if (isPlaying) dispatch(pause());
       },
       onend: () => {
-        dispatch(playNext());
+        // For live streams, onend might not be relevant unless the stream itself ends.
+        // If you have a playlist of streams, you could playNext here.
+        // dispatch(playNext()); 
+        dispatch(pause()); // Or simply pause
       },
       onloaderror: (id, error) => {
         console.error('Howler load error:', error, 'for track URL:', currentTrack.url);
@@ -117,17 +120,15 @@ export function StickyAudioPlayer() {
 
   const handlePlayPause = useCallback(() => {
     if (!currentTrack && playlist.length > 0) {
-        // If no current track, set the first track from the playlist.
-        // Play will be triggered by the isPlaying state change.
         dispatch(setCurrentTrack(playlist[0]));
-        dispatch(play()); // Then try to play it.
+        dispatch(play()); 
         return;
     }
 
     if (isPlaying) {
       dispatch(pause());
     } else {
-      if (currentTrack) { // Only dispatch play if a track is loaded
+      if (currentTrack) { 
         dispatch(play());
       }
     }
@@ -154,7 +155,7 @@ export function StickyAudioPlayer() {
     }
   }, [dispatch, isMuted, volume, previousVolume]);
   
-  if (!isClient || !currentTrack) { // Don't render player if no track or not client-side yet
+  if (!isClient || !currentTrack) { 
     return null; 
   }
 
@@ -163,7 +164,6 @@ export function StickyAudioPlayer() {
       "fixed left-0 right-0 z-40 border-t bg-background/95 p-3 backdrop-blur supports-[backdrop-filter]:bg-background/60",
       "bottom-[calc(4.5rem+env(safe-area-inset-bottom)+0.5rem)] md:bottom-2"
     )}>
-      {/* Native audio element removed */}
       <div className="container mx-auto flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <Image 
@@ -171,7 +171,7 @@ export function StickyAudioPlayer() {
             alt={currentTrack.title} 
             width={40} height={40} 
             className="rounded"
-            data-ai-hint="music album"
+            data-ai-hint="radio live stream"
           />
           <div>
             <p className="text-sm font-semibold truncate max-w-[150px] md:max-w-xs">{currentTrack.title}</p>
