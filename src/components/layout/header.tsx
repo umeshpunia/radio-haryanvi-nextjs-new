@@ -3,7 +3,6 @@ import Link from 'next/link';
 import {
   RssIcon,
   HomeIcon,
-  HeartHandshakeIcon,
   InfoIcon,
   MailIcon,
   ShieldCheckIcon
@@ -15,7 +14,6 @@ export function Header() {
   const navItems = [
     { href: '/', label: 'Home', icon: <HomeIcon className="h-5 w-5" /> },
     { href: '/blog', label: 'Blog', icon: <RssIcon className="h-5 w-5" /> },
-    { href: '/donors', label: 'Donors', icon: <HeartHandshakeIcon className="h-5 w-5" /> },
     { href: '/about', label: 'About', icon: <InfoIcon className="h-5 w-5" /> },
     { href: '/contact', label: 'Contact', icon: <MailIcon className="h-5 w-5" /> },
     { href: '/privacy', label: 'Privacy', icon: <ShieldCheckIcon className="h-5 w-5" /> },

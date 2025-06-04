@@ -23,6 +23,7 @@ export function Footer() {
     { href: "/about", label: "About Us" },
     { href: "/contact", label: "Contact" },
     { href: "/privacy", label: "Privacy Policy" },
+    { href: "/donors", label: "Donors" }, // Added Donors link
   ];
 
   return (
