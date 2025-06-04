@@ -28,7 +28,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { addDonor, NewDonorData } from "@/services/donor-service"; // Removed calculateAge from this import
+import { addDonor, NewDonorData } from "@/services/donor-service";
 import { useToast } from "@/hooks/use-toast";
 import React from "react";
 
@@ -53,7 +53,11 @@ const donorFormSchema = z.object({
     .refine((date) => {
       const age = calculateAge(format(date, "yyyy-MM-dd"));
       return age >= 18;
-    }, { message: "Donor must be at least 18 years old." }),
+    }, { message: "Donor must be at least 18 years old." })
+    .refine((date) => {
+      const age = calculateAge(format(date, "yyyy-MM-dd"));
+      return age < 30;
+    }, { message: "Donor must be less than 30 years old." }),
   bloodGroup: z.string({ required_error: "Please select a blood group." }).refine(val => bloodGroups.includes(val), { message: "Invalid blood group" }),
   address: z.string().min(5, { message: "Address must be at least 5 characters." }).max(100),
   area: z.string().min(3, { message: "Area must be at least 3 characters." }).max(50),
@@ -81,6 +85,22 @@ export function DonorForm({ onSuccess, setOpen }: DonorFormProps) {
     },
   });
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  // Calculate date boundaries for the calendar
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Normalize to start of day
+
+  // Latest allowed DOB (to be 18 years old)
+  const maxSelectableDOB = new Date(today);
+  maxSelectableDOB.setFullYear(today.getFullYear() - 18);
+
+  // Earliest allowed DOB (to be less than 30 years old)
+  // This means the person is 29 at most.
+  // If born exactly 30 years ago, they are 30. We need DOB to be after that.
+  const earliestSelectableDOB = new Date(today);
+  earliestSelectableDOB.setFullYear(today.getFullYear() - 30);
+  earliestSelectableDOB.setDate(earliestSelectableDOB.getDate() + 1); // Day after 30th birthday in the past
+
 
   async function onSubmit(data: DonorFormValues) {
     setIsSubmitting(true);
@@ -167,15 +187,19 @@ export function DonorForm({ onSuccess, setOpen }: DonorFormProps) {
                     mode="single"
                     selected={field.value}
                     onSelect={field.onChange}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("1900-01-01")
+                    defaultMonth={maxSelectableDOB} // Start view at latest possible DOB for 18 y.o.
+                    disabled={(date) => 
+                        date > maxSelectableDOB || date < earliestSelectableDOB
                     }
                     initialFocus
+                    captionLayout="dropdown-buttons"
+                    fromYear={earliestSelectableDOB.getFullYear()}
+                    toYear={maxSelectableDOB.getFullYear()}
                   />
                 </PopoverContent>
               </Popover>
               <FormDescription>
-                Your date of birth is used to calculate your age. You must be 18 or older.
+                Your date of birth is used to calculate your age. Donor must be between 18 and 29 years old.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -255,4 +279,3 @@ export function DonorForm({ onSuccess, setOpen }: DonorFormProps) {
     </Form>
   );
 }
-
