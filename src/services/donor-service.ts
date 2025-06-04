@@ -42,12 +42,20 @@ function calculateAge(dob: string): number {
   return age;
 }
 
+function capitalizeName(name: string): string {
+  if (!name) return "";
+  return name
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 export async function addDonor(donorData: NewDonorData): Promise<Donor> {
   const age = calculateAge(donorData.dob);
   if (age < 18) {
     throw new Error('Donor must be at least 18 years old.');
   }
-  if (age > 50) { // Updated to 50
+  if (age > 50) {
     throw new Error('Donor must be 50 years old or younger.');
   }
 
@@ -60,8 +68,11 @@ export async function addDonor(donorData: NewDonorData): Promise<Donor> {
       throw new Error('Failed to generate a new donor ID.');
     }
 
+    const formattedName = capitalizeName(donorData.name);
+
     const donorPayload = {
       ...donorData,
+      name: formattedName,
       age,
       active: true,
       timestamp: serverTimestamp(),
@@ -73,7 +84,8 @@ export async function addDonor(donorData: NewDonorData): Promise<Donor> {
 
     return { 
       id: newDonorId, 
-      ...donorData, 
+      ...donorData,
+      name: formattedName, 
       age,
       active: true,
       timestamp: currentTimestamp 
@@ -122,3 +134,4 @@ export async function getDonorById(donorId: string): Promise<Donor | null> {
     throw new Error(`Could not retrieve donor with ID ${donorId}.`);
   }
 }
+
