@@ -30,7 +30,9 @@ export interface NewDonorData {
 
 const DONORS_PATH = 'donors';
 
-export function calculateAge(dob: string): number {
+// This function is only used internally, so it should not be exported
+// if the file has 'use server'; directive.
+function calculateAge(dob: string): number {
   const birthDate = new Date(dob);
   const today = new Date();
   let age = today.getFullYear() - birthDate.getFullYear();
