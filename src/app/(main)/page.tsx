@@ -90,7 +90,7 @@ export default function HomePage() {
             Tune into our 24/7 Haryanvi music stream.
           </p>
           <Button asChild>
-            <Link href="/radio">Listen Now</Link>
+            <Link href="/programs">View Programs</Link>
           </Button>
         </div>
         <div className="flex flex-col items-center p-6 bg-card rounded-lg shadow-lg h-full">
