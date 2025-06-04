@@ -33,27 +33,6 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  const featuredArtists = [
-    {
-      name: "Sapna Choudhary",
-      genre: "Folk Dance & Music",
-      imageUrl: "https://placehold.co/300x300.png",
-      aiHint: "female dancer"
-    },
-    {
-      name: "Gulzaar Chhaniwala",
-      genre: "Modern Haryanvi Pop",
-      imageUrl: "https://placehold.co/300x300.png",
-      aiHint: "male singer"
-    },
-    {
-      name: "Renuka Panwar",
-      genre: "Popular Haryanvi Hits",
-      imageUrl: "https://placehold.co/300x300.png",
-      aiHint: "female singer"
-    },
-  ];
-
   return (
     <div className="flex flex-col items-center justify-center text-center">
       <header className="mb-12">
@@ -115,38 +94,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="w-full max-w-5xl mb-16">
-        <div className="text-center mb-10">
-            <UsersIcon className="w-16 h-16 text-primary mx-auto mb-4" />
-            <h2 className="font-headline text-3xl md:text-4xl font-bold text-primary mb-2">
-                Spotlight on Haryanvi Artists
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Discover the voices and talents shaping the Haryanvi music scene.
-            </p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {featuredArtists.map((artist) => (
-            <Card key={artist.name} className="flex flex-col items-center text-center shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <CardHeader>
-                <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden mx-auto mb-4 border-4 border-primary/50">
-                  <Image
-                    src={artist.imageUrl}
-                    alt={`Portrait of ${artist.name}, Haryanvi artist`}
-                    layout="fill"
-                    objectFit="cover"
-                    data-ai-hint={artist.aiHint}
-                  />
-                </div>
-                <CardTitle className="font-headline text-xl md:text-2xl">{artist.name}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground text-sm">{artist.genre}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
+      {/* Spotlight on Haryanvi Artists section removed */}
 
       <section className="w-full max-w-4xl mb-16 p-8 bg-card rounded-lg shadow-lg text-left">
         <div className="flex items-start gap-4">
@@ -163,7 +111,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="w-full max-w-4xl text-left p-8 bg-accent/30 rounded-lg shadow-lg border border-primary/30">
+      <section className="w-full max-w-4xl text-left p-8 bg-card rounded-lg shadow-lg">
          <div className="flex items-start gap-4">
             <Music2Icon className="w-12 h-12 text-primary mt-1 flex-shrink-0" />
             <div>
@@ -180,5 +128,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-    
