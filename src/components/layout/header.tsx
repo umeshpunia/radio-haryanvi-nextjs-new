@@ -17,7 +17,7 @@ export function Header() {
         <Link href="/" className="font-headline text-2xl font-bold text-primary">
           Radio Haryanvi
         </Link>
-        <nav className="flex items-center space-x-4 lg:space-x-6">
+        <nav className="flex items-center space-x-6 lg:space-x-8">
           {navItems.map((item) => (
             <Button key={item.href} variant="ghost" asChild>
               <Link href={item.href} className="flex items-center gap-3 text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
