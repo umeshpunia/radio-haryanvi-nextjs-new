@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import { RssIcon, HomeIcon, SettingsIcon } from 'lucide-react'; // Added SettingsIcon
 import { ThemeToggleButton } from './theme-toggle-button';
@@ -19,7 +20,7 @@ export function Header() {
         <nav className="flex items-center space-x-4 lg:space-x-6">
           {navItems.map((item) => (
             <Button key={item.href} variant="ghost" asChild>
-              <Link href={item.href} className="flex items-center space-x-2 text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
+              <Link href={item.href} className="flex items-center gap-3 text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
                 {item.icon}
                 <span>{item.label}</span>
               </Link>
