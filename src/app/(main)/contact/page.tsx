@@ -1,10 +1,11 @@
 
 import { Metadata } from 'next';
-import { MailIcon, PhoneIcon } from 'lucide-react'; // Or any appropriate icons
+import { MailIcon } from 'lucide-react';
+import { ContactForm } from '@/components/contact/contact-form'; // Import the new form
 
 export const metadata: Metadata = {
   title: 'Contact Us - Radio Haryanvi',
-  description: 'Get in touch with the Radio Haryanvi team.',
+  description: 'Get in touch with the Radio Haryanvi team by filling out our contact form or finding our contact details.',
 };
 
 export default function ContactPage() {
@@ -16,46 +17,34 @@ export default function ContactPage() {
           Contact Radio Haryanvi
         </h1>
         <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-          We'd love to hear from you! Whether you have a question, feedback, or a collaboration idea, feel free to reach out.
+          We&apos;d love to hear from you! Please fill out the form below to send us a message. Whether you have a question, feedback, or a collaboration idea, feel free to reach out.
         </p>
       </header>
 
-      <section className="max-w-2xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="p-6 bg-card rounded-lg shadow-lg">
-          <h2 className="font-headline text-2xl font-semibold mb-3 text-primary">General Inquiries</h2>
-          <p className="text-muted-foreground mb-2">
-            For general questions or feedback, please email us at:
-          </p>
-          <a href="mailto:info@radioharyanvi.com" className="text-primary hover:underline break-all">
-            info@radioharyanvi.com
-          </a>
-        </div>
+      <section className="max-w-2xl mx-auto">
+        <ContactForm />
+      </section>
 
-        <div className="p-6 bg-card rounded-lg shadow-lg">
-          <h2 className="font-headline text-2xl font-semibold mb-3 text-primary">Artist Submissions</h2>
-          <p className="text-muted-foreground mb-2">
-            Are you a Haryanvi artist? Submit your music to:
+      <section className="mt-16 text-center max-w-2xl mx-auto">
+        <h2 className="font-headline text-2xl font-semibold mb-4 text-primary">Other Ways to Reach Us</h2>
+        <div className="space-y-4 text-muted-foreground">
+          <p>
+            For urgent matters or direct inquiries, you can also reach us via:
           </p>
-          <a href="mailto:submissions@radioharyanvi.com" className="text-primary hover:underline break-all">
-            submissions@radioharyanvi.com
-          </a>
-        </div>
-        
-        <div className="p-6 bg-card rounded-lg shadow-lg md:col-span-2">
-          <h2 className="font-headline text-2xl font-semibold mb-3 text-primary">Mailing Address</h2>
-          <p className="text-muted-foreground">
+          <p>
+            <strong>General Inquiries:</strong> <a href="mailto:info@radioharyanvi.com" className="text-primary hover:underline">info@radioharyanvi.com</a>
+          </p>
+          <p>
+            <strong>Artist Submissions:</strong> <a href="mailto:submissions@radioharyanvi.com" className="text-primary hover:underline">submissions@radioharyanvi.com</a>
+          </p>
+           <p className="mt-6">
+            <strong>Mailing Address:</strong><br />
             Radio Haryanvi Headquarters <br />
             123 Music Lane <br />
             Chandigarh, Haryana 160001 <br />
             India
           </p>
         </div>
-        
-        {/* Placeholder for a contact form if needed in the future */}
-        {/* <div className="p-6 bg-card rounded-lg shadow-lg md:col-span-2">
-          <h2 className="font-headline text-2xl font-semibold mb-3 text-primary">Send us a Message</h2>
-          <p className="text-muted-foreground">Contact form coming soon!</p>
-        </div> */}
       </section>
     </div>
   );
