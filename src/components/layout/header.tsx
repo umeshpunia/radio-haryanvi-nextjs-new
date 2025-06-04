@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 export function Header() {
   const navItems = [
     { href: '/', label: 'Home', icon: <HomeIcon className="h-5 w-5" /> },
-    { href: '/donors', label: 'Donors', icon: <HeartHandshakeIcon className="h-5 w-5" /> },
+    { href: '/donors', label: 'Donors', icon: <HeartHandshakeIcon /> }, 
     { href: '/programs', label: 'Programs', icon: <CalendarClockIcon className="h-5 w-5" /> },
     { href: '/blog', label: 'Blog', icon: <RssIcon className="h-5 w-5" /> },
     { href: '/settings', label: 'Settings', icon: <SettingsIcon className="h-5 w-5" /> },
