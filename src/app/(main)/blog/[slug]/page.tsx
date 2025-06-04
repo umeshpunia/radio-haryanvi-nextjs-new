@@ -1,3 +1,4 @@
+
 import { fetchPostBySlugApi, fetchAuthorApi, Post, Author } from '@/lib/wordpress';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
@@ -97,7 +98,7 @@ export default async function BlogPostPage({ params }: Props) {
       )}
 
       <div
-        className="prose dark:prose-invert prose-lg max-w-none prose-headings:font-headline prose-headings:text-primary prose-a:text-primary hover:prose-a:text-accent transition-colors prose-img:rounded-md prose-img:shadow-md"
+        className="prose dark:prose-invert prose-lg max-w-none prose-headings:font-headline prose-headings:text-primary prose-p:text-muted-foreground prose-li:text-muted-foreground prose-strong:text-foreground prose-blockquote:text-muted-foreground prose-a:text-primary hover:prose-a:text-accent transition-colors prose-img:rounded-md prose-img:shadow-md"
         dangerouslySetInnerHTML={{ __html: post.content.rendered }}
       />
     </article>
