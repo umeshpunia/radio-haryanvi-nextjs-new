@@ -1,15 +1,12 @@
 
 "use client"; // Required for FlappyBirdGame component
 
-import { Metadata } from 'next'; // Still can have metadata if needed at build time for the page itself
 import { Gamepad2Icon } from 'lucide-react';
-import FlappyBirdGame from '@/components/games/flappy-bird-game'; // Import the game component
+import FlappyBirdGame from '@/components/games/flappy-bird-game'; 
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'; // Added Card imports
 
-// Metadata can still be defined for server rendering part of the page shell
-// export const metadata: Metadata = {
-//   title: 'Flappy Bird Game - Radio Haryanvi',
-//   description: 'Play a fun game of Flappy Bird on Radio Haryanvi.',
-// };
+// No specific server-side metadata here as the core is client-side.
+// Metadata could be added in a layout.tsx if needed for the /flappy-bird route generally.
 
 export default function FlappyBirdPage() {
   return (
@@ -17,19 +14,27 @@ export default function FlappyBirdPage() {
       <header className="mb-12 text-center">
         <Gamepad2Icon className="w-24 h-24 text-primary mx-auto mb-6" />
         <h1 className="font-headline text-4xl md:text-5xl font-bold text-primary mb-4">
-          Flappy Bird Game
+          Flappy Haryanvi Bird
         </h1>
         <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-          Test your skills and see how far you can fly!
+          Test your skills and see how far the Haryanvi bird can fly! Click or press Spacebar to flap.
         </p>
       </header>
 
-      <section className="max-w-md mx-auto text-center p-6 bg-card rounded-lg shadow-xl">
-        <h2 className="font-headline text-2xl font-semibold text-primary mb-6">
-          Game Area
-        </h2>
-        <FlappyBirdGame />
+      <section className="max-w-md mx-auto">
+        <Card className="shadow-xl">
+          <CardHeader>
+            <CardTitle className="text-center font-headline text-2xl">Game Area</CardTitle>
+            <CardDescription className="text-center text-sm">
+              Click the game canvas or press Spacebar to make the bird flap.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center p-4 md:p-6">
+            <FlappyBirdGame />
+          </CardContent>
+        </Card>
       </section>
     </div>
   );
 }
+
