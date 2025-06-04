@@ -1,65 +1,139 @@
 
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
 import {
   play,
   pause,
   setVolume,
-  setCurrentTime, // Kept for potential future use or internal logic, though not directly used by removed elements
-  setDuration,  // Kept for potential future use or internal logic
+  setDuration,
   playNext,
-  playPrevious,
-  setCurrentTrack, // For initial load or testing
+  setCurrentTrack,
+  // setCurrentTime is not actively used for display, but Howler can provide it
 } from '@/lib/redux/slices/audio-player-slice';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { PlayIcon, PauseIcon, Volume2Icon, VolumeXIcon } from 'lucide-react'; // Removed SkipBackIcon, SkipForwardIcon
+import { PlayIcon, PauseIcon, Volume2Icon, VolumeXIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Howl } from 'howler';
 
 export function StickyAudioPlayer() {
   const dispatch = useAppDispatch();
-  const { currentTrack, isPlaying, volume, currentTime, duration, playlist } = useAppSelector((state) => state.audioPlayer);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const { currentTrack, isPlaying, volume, playlist } = useAppSelector((state) => state.audioPlayer);
+  const [howlInstance, setHowlInstance] = useState<Howl | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [previousVolume, setPreviousVolume] = useState(volume);
+  const [isClient, setIsClient] = useState(false);
 
-  // Test track for development
   useEffect(() => {
-    if (!currentTrack && playlist.length === 0) {
-       dispatch(setCurrentTrack({ id: 'test1', title: 'Radio Hub Intro', artist: 'Haryanvi Beats', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', coverArt: 'https://placehold.co/100x100.png' }));
+    setIsClient(true);
+  }, []);
+
+  // Effect for initializing a test track (runs only client-side)
+  useEffect(() => {
+    if (isClient && !currentTrack && playlist.length === 0) {
+      dispatch(setCurrentTrack({ 
+        id: 'test1', 
+        title: 'Radio Hub Intro', 
+        artist: 'Haryanvi Beats', 
+        url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', 
+        coverArt: 'https://placehold.co/100x100.png' 
+      }));
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch]);
+  }, [dispatch, currentTrack, playlist, isClient]);
 
-
+  // Effect for creating/unloading Howl instance when currentTrack changes
   useEffect(() => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.play().catch(error => console.error("Error playing audio:", error));
-      } else {
-        audioRef.current.pause();
+    if (!isClient || !currentTrack) {
+      if (howlInstance) {
+        howlInstance.unload();
+        setHowlInstance(null);
       }
+      return;
     }
-  }, [isPlaying, currentTrack]);
 
+    // Unload previous Howl instance if it exists
+    if (howlInstance) {
+      howlInstance.unload();
+    }
+
+    const newHowl = new Howl({
+      src: [currentTrack.url],
+      html5: true, // Recommended for streaming and larger files
+      volume: isMuted ? 0 : volume,
+      onload: () => {
+        dispatch(setDuration(newHowl.duration()));
+      },
+      onplay: () => {
+        // This can be used to sync if Howler starts playing for other reasons
+        // For now, Redux state `isPlaying` drives this.
+        if (!isPlaying) dispatch(play()); 
+      },
+      onpause: () => {
+        // This can be used to sync if Howler pauses for other reasons
+        if (isPlaying) dispatch(pause());
+      },
+      onend: () => {
+        dispatch(playNext());
+      },
+      onloaderror: (id, error) => {
+        console.error('Howler load error:', error, 'for track URL:', currentTrack.url);
+        // Potentially dispatch an error action or try to play next
+      },
+      onplayerror: (id, error) => {
+        console.error('Howler play error:', error, 'for track ID:', currentTrack.id);
+        dispatch(pause()); // Ensure isPlaying is false if playback fails
+      },
+    });
+
+    setHowlInstance(newHowl);
+
+    return () => {
+      newHowl.unload();
+      setHowlInstance(null); // Clean up on component unmount or track change
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentTrack, dispatch, isClient]); // isMuted and volume are handled in separate effects
+
+  // Effect for handling play/pause based on Redux state
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = isMuted ? 0 : volume;
-    }
-  }, [volume, isMuted]);
+    if (!howlInstance || !isClient) return;
 
-  const handlePlayPause = () => {
+    if (isPlaying && !howlInstance.playing()) {
+      howlInstance.play();
+    } else if (!isPlaying && howlInstance.playing()) {
+      howlInstance.pause();
+    }
+  }, [isPlaying, howlInstance, isClient]);
+
+  // Effect for handling volume changes
+  useEffect(() => {
+    if (!howlInstance || !isClient) return;
+    howlInstance.volume(isMuted ? 0 : volume);
+  }, [volume, isMuted, howlInstance, isClient]);
+
+
+  const handlePlayPause = useCallback(() => {
+    if (!currentTrack && playlist.length > 0) {
+        // If no current track, set the first track from the playlist.
+        // Play will be triggered by the isPlaying state change.
+        dispatch(setCurrentTrack(playlist[0]));
+        dispatch(play()); // Then try to play it.
+        return;
+    }
+
     if (isPlaying) {
       dispatch(pause());
     } else {
-      dispatch(play());
+      if (currentTrack) { // Only dispatch play if a track is loaded
+        dispatch(play());
+      }
     }
-  };
+  }, [dispatch, isPlaying, currentTrack, playlist]);
 
-  const handleVolumeChange = (value: number[]) => {
+  const handleVolumeChange = useCallback((value: number[]) => {
     const newVolume = value[0];
     dispatch(setVolume(newVolume));
     if (newVolume > 0 && isMuted) {
@@ -67,65 +141,29 @@ export function StickyAudioPlayer() {
     } else if (newVolume === 0 && !isMuted) {
       setIsMuted(true);
     }
-  };
+  }, [dispatch, isMuted]);
 
-  const toggleMute = () => {
+  const toggleMute = useCallback(() => {
     if (isMuted) {
       setIsMuted(false);
-      dispatch(setVolume(previousVolume > 0 ? previousVolume : 0.1)); // Restore previous or small volume
+      dispatch(setVolume(previousVolume > 0 ? previousVolume : 0.1));
     } else {
-      setPreviousVolume(volume); // Save current volume
+      setPreviousVolume(volume);
       setIsMuted(true);
       dispatch(setVolume(0));
     }
-  };
-
-  const handleTimeUpdate = () => {
-    if (audioRef.current) {
-      dispatch(setCurrentTime(audioRef.current.currentTime));
-    }
-  };
-
-  const handleLoadedMetadata = () => {
-    if (audioRef.current) {
-      dispatch(setDuration(audioRef.current.duration));
-    }
-  };
-
-  // handleSeek is no longer needed as slider is removed
-  // const handleSeek = (value: number[]) => {
-  //   if (audioRef.current) {
-  //     audioRef.current.currentTime = value[0];
-  //     dispatch(setCurrentTime(value[0]));
-  //   }
-  // };
-
-  // formatTime is no longer needed as time display is removed
-  // const formatTime = (time: number) => {
-  //   const minutes = Math.floor(time / 60);
-  //   const seconds = Math.floor(time % 60).toString().padStart(2, '0');
-  //   return `${minutes}:${seconds}`;
-  // };
-
-  if (!currentTrack) {
+  }, [dispatch, isMuted, volume, previousVolume]);
+  
+  if (!isClient || !currentTrack) { // Don't render player if no track or not client-side yet
     return null; 
   }
 
   return (
     <div className={cn(
       "fixed left-0 right-0 z-40 border-t bg-background/95 p-3 backdrop-blur supports-[backdrop-filter]:bg-background/60",
-      // Mobile: position 0.5rem (theme.spacing.2) above the mobile nav (4.5rem + safe area)
-      // Desktop: position 0.5rem (theme.spacing.2) from the bottom of the viewport
       "bottom-[calc(4.5rem+env(safe-area-inset-bottom)+0.5rem)] md:bottom-2"
     )}>
-      <audio
-        ref={audioRef}
-        src={currentTrack.url}
-        onTimeUpdate={handleTimeUpdate}
-        onLoadedMetadata={handleLoadedMetadata}
-        onEnded={() => dispatch(playNext())} // Still dispatch playNext on ended, even if button is removed
-        onError={(e) => console.error("Audio error:", e)}
-      />
+      {/* Native audio element removed */}
       <div className="container mx-auto flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <Image 
@@ -141,15 +179,12 @@ export function StickyAudioPlayer() {
           </div>
         </div>
 
-        <div className="flex flex-col items-center space-y-1 md:min-w-[auto]"> {/* Adjusted min-w */}
+        <div className="flex flex-col items-center space-y-1 md:min-w-[auto]">
           <div className="flex items-center space-x-2">
-            {/* Previous button removed */}
             <Button variant="ghost" size="icon" onClick={handlePlayPause} className="w-10 h-10">
               {isPlaying ? <PauseIcon className="h-6 w-6" /> : <PlayIcon className="h-6 w-6" />}
             </Button>
-            {/* Next button removed */}
           </div>
-          {/* Progress bar and time display removed */}
         </div>
         
         <div className="flex items-center space-x-2">

@@ -35,7 +35,7 @@ const audioPlayerSlice = createSlice({
     },
     setCurrentTrack: (state, action: PayloadAction<Track | null>) => {
       state.currentTrack = action.payload;
-      state.isPlaying = !!action.payload; // Auto-play if a track is set, can be changed
+      state.isPlaying = false; // Ensure no autoplay when track changes
       state.currentTime = 0;
       state.duration = 0;
     },
@@ -64,7 +64,7 @@ const audioPlayerSlice = createSlice({
       } else { // Loop to first track or stop, here we loop
         state.currentTrack = state.playlist[0];
       }
-      state.isPlaying = true;
+      state.isPlaying = true; // Autoplay next track
       state.currentTime = 0;
     },
     playPrevious: (state) => {
@@ -75,7 +75,7 @@ const audioPlayerSlice = createSlice({
       } else { // Loop to last track or stop, here we loop
         state.currentTrack = state.playlist[state.playlist.length - 1];
       }
-      state.isPlaying = true;
+      state.isPlaying = true; // Autoplay previous track
       state.currentTime = 0;
     },
   },
