@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { Facebook, Twitter, Instagram, Youtube } from 'lucide-react'; // Changed Linkedin to Youtube
+import { Facebook, Twitter, Instagram, Youtube } from 'lucide-react';
 
 export function Footer() {
   const [currentYear, setCurrentYear] = useState<number | null>(null);
@@ -16,7 +16,7 @@ export function Footer() {
     { name: 'Facebook', href: '#', icon: <Facebook className="h-5 w-5" /> },
     { name: 'Twitter', href: '#', icon: <Twitter className="h-5 w-5" /> },
     { name: 'Instagram', href: '#', icon: <Instagram className="h-5 w-5" /> },
-    { name: 'YouTube', href: '#', icon: <Youtube className="h-5 w-5" /> }, // Changed from LinkedIn to YouTube
+    { name: 'YouTube', href: '#', icon: <Youtube className="h-5 w-5" /> },
   ];
 
   const internalLinks = [
@@ -56,7 +56,7 @@ export function Footer() {
           </div>
 
           {/* Social Media Links */}
-          <div className="flex flex-col items-end gap-2">
+          <div className="flex flex-col items-start md:items-end gap-2"> {/* Changed alignment here */}
              <h3 className="font-semibold text-primary mb-2 text-base">Connect With Us</h3>
             <div className="flex space-x-4">
               {socialLinks.map((social) => (
@@ -81,4 +81,3 @@ export function Footer() {
     </footer>
   );
 }
-
