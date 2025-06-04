@@ -23,7 +23,7 @@ export function Footer() {
     { name: 'Facebook', href: '#', icon: <Facebook className="h-6 w-6" /> },
     { name: 'Twitter', href: '#', icon: <Twitter className="h-6 w-6" /> },
     { name: 'Instagram', href: '#', icon: <Instagram className="h-6 w-6" /> },
-    { name: 'YouTube', href: '#', icon: <Youtube className="h-6 w-6" /> },
+    { name: 'YouTube', href: '#', icon: <Youtube className="h-6 w-6" /> }, // Ensured h-6 w-6
   ];
 
   return (

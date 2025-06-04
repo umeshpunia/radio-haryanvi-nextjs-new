@@ -1,12 +1,5 @@
 
 import Link from 'next/link';
-import {
-  HomeIcon,
-  RssIcon,
-  InfoIcon,
-  MailIcon,
-  ShieldCheckIcon,
-} from 'lucide-react';
 import { ThemeToggleButton } from './theme-toggle-button';
 import { Button } from '@/components/ui/button';
 
@@ -14,9 +7,9 @@ export function Header() {
   const navItems = [
     { href: '/', label: 'Home'},
     { href: '/blog', label: 'Blog'},
-    { href: '/about', label: 'About'},
-    { href: '/contact', label: 'Contact'},
-    { href: '/privacy', label: 'Privacy'},
+    { href: '/about', label: 'About Us'},
+    { href: '/contact', label: 'Contact Us'},
+    { href: '/privacy', label: 'Privacy Policy'},
   ];
 
   return (
