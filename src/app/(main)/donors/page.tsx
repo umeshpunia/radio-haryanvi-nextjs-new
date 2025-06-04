@@ -100,6 +100,7 @@ export default function DonorsPage() {
     setIsLoading(true);
     try {
       const fetchedDonors = await getDonors();
+      console.log(fetchedDonors)
       setDonors(fetchedDonors);
       setError(null);
     } catch (err: any) {
