@@ -38,7 +38,7 @@ export function StickyAudioPlayer() {
         id: 'liveRadioHaryanvi', 
         title: 'Radio Haryanvi Live', 
         artist: 'Live Stream', 
-        url: 'http://weareharyanvi.com:8000/listen', 
+        url: 'https://listen.weareharyanvi.com/listen', 
         coverArt: 'https://placehold.co/100x100.png' 
       }));
     }
@@ -81,10 +81,14 @@ export function StickyAudioPlayer() {
       onloaderror: (id, error) => {
         console.error(
           `Howler load error (code: ${error}) for track URL: ${currentTrack.url}.`,
-          `Error code 4 typically indicates a Network Error. This could be due to:`,
-          `1. CORS issues on the streaming server (${new URL(currentTrack.url).origin}). The server needs to allow requests from your app's domain.`,
-          `2. The stream at ${currentTrack.url} being down or temporarily unavailable.`,
-          `3. Mixed content issues if your app is on HTTPS and the stream is HTTP (browsers block this).`
+          `Error code descriptions:`,
+          `1. ABORTED: The loading of the audio file was aborted.`,
+          `2. NETWORK: A network error occurred while fetching the audio file.`,
+          `   - Check CORS settings on the server (${new URL(currentTrack.url).origin}). It needs 'Access-Control-Allow-Origin'.`,
+          `   - Verify the stream URL is correct and the stream is online.`,
+          `   - Ensure no mixed content issues (HTTPS app trying to load HTTP stream).`,
+          `3. DECODE: The audio file could not be decoded.`,
+          `4. SRC_NOT_SUPPORTED: The audio source is not supported or the URL is invalid.`
         );
         dispatch(pause()); // Ensure UI reflects that nothing is playing
         // Potentially dispatch an error action to show in UI
@@ -92,8 +96,9 @@ export function StickyAudioPlayer() {
       onplayerror: (id, error) => {
         console.error(
           `Howler play error (code: ${error}) for track ID: ${currentTrack.id}, URL: ${currentTrack.url}.`,
-          `This can happen due to various reasons, including network issues after loading, or media decoding problems.`,
-          `If error code is 1 (AUDIO_LOCKED), it means playback was blocked until a user interaction.`
+          `Common reasons:`,
+          `1. AUDIO_LOCKED: Playback was blocked until a user interaction (e.g., click).`,
+          `2. NETWORK/DECODE issues after loading.`
         );
         dispatch(pause()); // Ensure isPlaying is false if playback fails
       },
