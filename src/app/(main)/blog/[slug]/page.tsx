@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: Props, parent: ResolvingMetad
   const featuredImageUrl = post._embedded?.['wp:featuredmedia']?.[0]?.source_url;
 
   return {
-    title: `${post.title.rendered} - Haryanvi Radio Hub Blog`,
+    title: `${post.title.rendered} - Radio Haryanvi Blog`,
     description: post.excerpt.rendered.replace(/<[^>]+>/g, '').substring(0, 160), // Plain text excerpt
     openGraph: {
       title: post.title.rendered,

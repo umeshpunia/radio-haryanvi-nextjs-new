@@ -6,20 +6,20 @@ import { OfflineIndicator } from "@/components/offline-indicator";
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Haryanvi Radio Hub',
+  title: 'Radio Haryanvi',
   description: 'Your one-stop destination for Haryanvi music and culture.',
   openGraph: {
-    title: 'Haryanvi Radio Hub',
+    title: 'Radio Haryanvi',
     description: 'Your one-stop destination for Haryanvi music and culture.',
     type: 'website',
     locale: 'en_US',
     // url: 'https://your-domain.com', // Replace with your actual domain
-    // siteName: 'Haryanvi Radio Hub',
+    // siteName: 'Radio Haryanvi',
     // images: [ { url: 'https://your-domain.com/og-image.png' } ], // Replace with your OG image
   },
   // twitter: {
   //   card: 'summary_large_image',
-  //   title: 'Haryanvi Radio Hub',
+  //   title: 'Radio Haryanvi',
   //   description: 'Your one-stop destination for Haryanvi music and culture.',
   //   creator: '@yourtwitterhandle', // Replace
   //   images: ['https://your-domain.com/twitter-image.png'], // Replace

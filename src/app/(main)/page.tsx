@@ -8,7 +8,7 @@ export default function HomePage() {
     <div className="flex flex-col items-center justify-center text-center">
       <header className="mb-12">
         <h1 className="font-headline text-5xl md:text-7xl font-bold text-primary mb-4">
-          Haryanvi Radio Hub
+          Radio Haryanvi
         </h1>
         <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
           Immerse yourself in the vibrant sounds and culture of Haryana. Tune into live radio, discover new artists, and read our latest blog posts.
@@ -65,7 +65,7 @@ export default function HomePage() {
       <section className="w-full max-w-4xl text-left p-8 bg-card rounded-lg shadow-lg">
         <h2 className="font-headline text-3xl font-semibold mb-4">About Us</h2>
         <p className="text-muted-foreground leading-relaxed">
-          Haryanvi Radio Hub is dedicated to promoting the rich musical heritage of Haryana. We strive to be the premier platform for Haryanvi music lovers worldwide, offering a seamless listening experience, insightful articles, and a space to discover the diverse talents from the heartland of Haryana. Join our community and celebrate the spirit of Haryanvi culture with us!
+          Radio Haryanvi is dedicated to promoting the rich musical heritage of Haryana. We strive to be the premier platform for Haryanvi music lovers worldwide, offering a seamless listening experience, insightful articles, and a space to discover the diverse talents from the heartland of Haryana. Join our community and celebrate the spirit of Haryanvi culture with us!
         </p>
       </section>
     </div>

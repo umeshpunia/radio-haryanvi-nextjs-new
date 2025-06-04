@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { RadioIcon } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Live Radio - Haryanvi Radio Hub',
+  title: 'Live Radio - Radio Haryanvi',
   description: 'Tune into live Haryanvi music streams 24/7.',
 };
 

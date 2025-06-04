@@ -48,7 +48,7 @@ export default function BlogPage() {
       <header className="mb-8 text-center">
         <RssIcon className="w-16 h-16 text-primary mx-auto mb-4" />
         <h1 className="font-headline text-4xl md:text-5xl font-bold text-primary mb-2">
-          Haryanvi Radio Hub Blog
+          Radio Haryanvi Blog
         </h1>
         <p className="text-lg text-muted-foreground">
           Discover articles about Haryanvi music, culture, artists, and more.

@@ -3,7 +3,7 @@ import { SettingsIcon } from 'lucide-react';
 import { ThemeToggleButton } from '@/components/layout/theme-toggle-button';
 
 export const metadata: Metadata = {
-  title: 'Settings - Haryanvi Radio Hub',
+  title: 'Settings - Radio Haryanvi',
   description: 'Manage your application settings.',
 };
 
