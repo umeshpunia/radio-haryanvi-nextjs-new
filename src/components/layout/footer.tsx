@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Youtube } from 'lucide-react'; // Changed Linkedin to Youtube
 
 export function Footer() {
   const [currentYear, setCurrentYear] = useState<number | null>(null);
@@ -16,14 +16,14 @@ export function Footer() {
     { name: 'Facebook', href: '#', icon: <Facebook className="h-5 w-5" /> },
     { name: 'Twitter', href: '#', icon: <Twitter className="h-5 w-5" /> },
     { name: 'Instagram', href: '#', icon: <Instagram className="h-5 w-5" /> },
-    { name: 'LinkedIn', href: '#', icon: <Linkedin className="h-5 w-5" /> },
+    { name: 'YouTube', href: '#', icon: <Youtube className="h-5 w-5" /> }, // Changed from LinkedIn to YouTube
   ];
 
   const internalLinks = [
     { href: "/about", label: "About Us" },
     { href: "/contact", label: "Contact" },
     { href: "/privacy", label: "Privacy Policy" },
-    { href: "/donors", label: "Donors" }, // Added Donors link
+    { href: "/donors", label: "Donors" },
   ];
 
   return (
