@@ -1,6 +1,7 @@
 
 import { Metadata } from 'next';
 import { ShieldCheckIcon } from 'lucide-react'; // Or any appropriate icon
+import Link from 'next/link'; // Added missing import
 
 export const metadata: Metadata = {
   title: 'Privacy Policy - Radio Haryanvi',
@@ -162,3 +163,4 @@ export default function PrivacyPolicyPage() {
     </div>
   );
 }
+
