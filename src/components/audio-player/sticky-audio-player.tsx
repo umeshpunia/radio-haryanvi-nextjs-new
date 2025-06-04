@@ -15,7 +15,7 @@ import {
 } from '@/lib/redux/slices/audio-player-slice';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { PlayIcon, PauseIcon, Volume2Icon, VolumeXIcon } from 'lucide-react';
+import { PlayIcon, PauseIcon, Volume2Icon, VolumeXIcon, SkipForwardIcon } from 'lucide-react'; // Added SkipForwardIcon
 import { cn } from '@/lib/utils';
 import { Howl } from 'howler';
 
@@ -65,8 +65,6 @@ export function StickyAudioPlayer() {
       volume: isMuted ? 0 : volume,
       format: ['mp3', 'aac'], // Specify formats if known, good for live streams
       onload: () => {
-        // For live streams, duration might be Infinity or not applicable in the same way.
-        // Howler might report a very large number or 0.
         dispatch(setDuration(newHowl.duration()));
       },
       onplay: () => {
@@ -77,16 +75,26 @@ export function StickyAudioPlayer() {
       },
       onend: () => {
         // For live streams, onend might not be relevant unless the stream itself ends.
-        // If you have a playlist of streams, you could playNext here.
-        // dispatch(playNext()); 
+        // If you have a playlist of streams, you could dispatch(playNext()); 
         dispatch(pause()); // Or simply pause
       },
       onloaderror: (id, error) => {
-        console.error('Howler load error:', error, 'for track URL:', currentTrack.url);
-        // Potentially dispatch an error action or try to play next
+        console.error(
+          `Howler load error (code: ${error}) for track URL: ${currentTrack.url}.`,
+          `Error code 4 typically indicates a Network Error. This could be due to:`,
+          `1. CORS issues on the streaming server (${new URL(currentTrack.url).origin}). The server needs to allow requests from your app's domain.`,
+          `2. The stream at ${currentTrack.url} being down or temporarily unavailable.`,
+          `3. Mixed content issues if your app is on HTTPS and the stream is HTTP (browsers block this).`
+        );
+        dispatch(pause()); // Ensure UI reflects that nothing is playing
+        // Potentially dispatch an error action to show in UI
       },
       onplayerror: (id, error) => {
-        console.error('Howler play error:', error, 'for track ID:', currentTrack.id);
+        console.error(
+          `Howler play error (code: ${error}) for track ID: ${currentTrack.id}, URL: ${currentTrack.url}.`,
+          `This can happen due to various reasons, including network issues after loading, or media decoding problems.`,
+          `If error code is 1 (AUDIO_LOCKED), it means playback was blocked until a user interaction.`
+        );
         dispatch(pause()); // Ensure isPlaying is false if playback fails
       },
     });
@@ -121,6 +129,7 @@ export function StickyAudioPlayer() {
   const handlePlayPause = useCallback(() => {
     if (!currentTrack && playlist.length > 0) {
         dispatch(setCurrentTrack(playlist[0]));
+        // Play will be triggered by the useEffect hook for isPlaying
         dispatch(play()); 
         return;
     }
@@ -155,6 +164,11 @@ export function StickyAudioPlayer() {
     }
   }, [dispatch, isMuted, volume, previousVolume]);
   
+  // Handler for playNext, assuming you might add a button for it
+  const handlePlayNext = useCallback(() => {
+    dispatch(playNext());
+  }, [dispatch]);
+
   if (!isClient || !currentTrack) { 
     return null; 
   }
@@ -162,7 +176,8 @@ export function StickyAudioPlayer() {
   return (
     <div className={cn(
       "fixed left-0 right-0 z-40 border-t bg-background/95 p-3 backdrop-blur supports-[backdrop-filter]:bg-background/60",
-      "bottom-[calc(4.5rem+env(safe-area-inset-bottom)+0.5rem)] md:bottom-2"
+      "bottom-[calc(4.5rem+env(safe-area-inset-bottom)+0.5rem)] md:bottom-2" 
+      // Adjusted bottom position for mobile and desktop based on layout.tsx
     )}>
       <div className="container mx-auto flex items-center justify-between">
         <div className="flex items-center space-x-3">
@@ -174,17 +189,23 @@ export function StickyAudioPlayer() {
             data-ai-hint="radio live stream"
           />
           <div>
-            <p className="text-sm font-semibold truncate max-w-[150px] md:max-w-xs">{currentTrack.title}</p>
-            <p className="text-xs text-muted-foreground truncate max-w-[150px] md:max-w-xs">{currentTrack.artist}</p>
+            <p className="text-sm font-semibold truncate max-w-[100px] sm:max-w-[150px] md:max-w-xs">{currentTrack.title}</p>
+            <p className="text-xs text-muted-foreground truncate max-w-[100px] sm:max-w-[150px] md:max-w-xs">{currentTrack.artist}</p>
           </div>
         </div>
 
-        <div className="flex flex-col items-center space-y-1 md:min-w-[auto]">
-          <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1 md:space-x-2">
+            {/* Add SkipPrevious button if needed */}
             <Button variant="ghost" size="icon" onClick={handlePlayPause} className="w-10 h-10">
               {isPlaying ? <PauseIcon className="h-6 w-6" /> : <PlayIcon className="h-6 w-6" />}
             </Button>
-          </div>
+            {/* Example: Add SkipNext button - this requires playlist functionality to be fully implemented
+            {playlist.length > 1 && (
+              <Button variant="ghost" size="icon" onClick={handlePlayNext} className="w-8 h-8">
+                <SkipForwardIcon className="h-5 w-5" />
+              </Button>
+            )}
+            */}
         </div>
         
         <div className="flex items-center space-x-2">
@@ -196,10 +217,11 @@ export function StickyAudioPlayer() {
             max={1}
             step={0.01}
             onValueChange={handleVolumeChange}
-            className="hidden w-24 md:flex"
+            className="hidden w-20 md:flex md:w-24" // Adjusted width
           />
         </div>
       </div>
     </div>
   );
 }
+
