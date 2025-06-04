@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { RadioIcon, RssIcon, HeadphonesIcon, UsersIcon, VenetianMaskIcon, Music2Icon } from 'lucide-react';
+import { RadioIcon, RssIcon, UsersIcon, VenetianMaskIcon, Music2Icon, HeartHandshakeIcon } from 'lucide-react';
 import type { Metadata } from 'next';
 import { CurrentProgramDisplay } from '@/components/programs/current-program-display'; // Import the new component
 
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     description: 'Your ultimate destination for authentic Haryanvi music, live radio, and cultural insights from Haryana.',
     images: [
       {
-        url: '/og-image-home.png', 
+        url: '/og-image-home.png',
         width: 1200,
         height: 630,
         alt: 'Radio Haryanvi - Live Haryanvi Music Stream & Culture Hub',
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Radio Haryanvi | Stream Live Haryanvi Music & Explore Culture',
     description: 'Listen to the best Haryanvi songs, discover artists, and dive into Haryana culture with Radio Haryanvi.',
-    images: ['/twitter-image-home.png'], 
+    images: ['/twitter-image-home.png'],
   },
 };
 
@@ -66,10 +66,10 @@ export default function HomePage() {
       </header>
 
       <div className="mb-16 relative w-full max-w-3xl aspect-video rounded-lg overflow-hidden shadow-2xl">
-        <Image 
-          src="https://placehold.co/1200x675.png" 
-          alt="Vibrant Haryanvi cultural showcase with traditional music elements" 
-          layout="fill" 
+        <Image
+          src="https://placehold.co/1200x675.png"
+          alt="Vibrant Haryanvi cultural showcase with traditional music elements"
+          layout="fill"
           objectFit="cover"
           priority
           data-ai-hint="Haryana culture festival music"
@@ -104,12 +104,14 @@ export default function HomePage() {
           </Button>
         </div>
         <div className="flex flex-col items-center p-6 bg-card rounded-lg shadow-lg">
-          <HeadphonesIcon className="w-16 h-16 text-primary mb-4" />
-          <h3 className="font-headline text-2xl font-semibold mb-2">Discover Music</h3>
+          <HeartHandshakeIcon className="w-16 h-16 text-primary mb-4" />
+          <h3 className="font-headline text-2xl font-semibold mb-2">Blood Donation</h3>
           <p className="text-muted-foreground text-center mb-4">
-            Find new Haryanvi tracks and support local artists.
+            Find or register as a blood donor. Save a life.
           </p>
-          <Button variant="outline">Explore Artists</Button>
+          <Button asChild>
+            <Link href="/donors">Visit Donors Page</Link>
+          </Button>
         </div>
       </section>
 
@@ -128,12 +130,12 @@ export default function HomePage() {
             <Card key={artist.name} className="flex flex-col items-center text-center shadow-lg hover:shadow-xl transition-shadow duration-300">
               <CardHeader>
                 <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden mx-auto mb-4 border-4 border-primary/50">
-                  <Image 
-                    src={artist.imageUrl} 
-                    alt={`Portrait of ${artist.name}, Haryanvi artist`} 
-                    layout="fill" 
+                  <Image
+                    src={artist.imageUrl}
+                    alt={`Portrait of ${artist.name}, Haryanvi artist`}
+                    layout="fill"
                     objectFit="cover"
-                    data-ai-hint={artist.aiHint} 
+                    data-ai-hint={artist.aiHint}
                   />
                 </div>
                 <CardTitle className="font-headline text-xl md:text-2xl">{artist.name}</CardTitle>
@@ -160,7 +162,7 @@ export default function HomePage() {
             </div>
         </div>
       </section>
-      
+
       <section className="w-full max-w-4xl text-left p-8 bg-accent/30 rounded-lg shadow-lg border border-primary/30">
          <div className="flex items-start gap-4">
             <Music2Icon className="w-12 h-12 text-primary mt-1 flex-shrink-0" />
