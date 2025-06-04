@@ -1,6 +1,6 @@
 
 import Link from 'next/link';
-import { RssIcon, HomeIcon, SettingsIcon, HeartHandshakeIcon, CalendarClockIcon } from 'lucide-react'; // Added CalendarClockIcon
+import { RssIcon, HomeIcon, SettingsIcon, HeartHandshakeIcon, CalendarClockIcon } from 'lucide-react';
 import { ThemeToggleButton } from './theme-toggle-button';
 import { Button } from '@/components/ui/button';
 
@@ -22,14 +22,10 @@ export function Header() {
         </Link>
 
         {/* Center Item: Navigation */}
-        <nav className="flex-grow flex justify-center items-center space-x-1 lg:space-x-2"> {/* Further reduced space-x */}
+        {/* IMPORTANT: Ensure no whitespace between <Button asChild> and <Link> for each item */}
+        <nav className="flex-grow flex justify-center items-center">
           {navItems.map((item) => (
-            <Button key={item.href} variant="ghost" asChild>
-              <Link href={item.href} className="flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-primary px-2 py-1"> {/* Reduced gap and added padding for clickable area */}
-                {item.icon}
-                <span>{item.label}</span>
-              </Link>
-            </Button>
+            <Button key={item.href} variant="ghost" asChild className="mx-0.5"><Link href={item.href} className="flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-primary px-1.5 py-1">{item.icon}<span>{item.label}</span></Link></Button>
           ))}
         </nav>
 

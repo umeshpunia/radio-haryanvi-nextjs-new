@@ -40,15 +40,45 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button"
+  ({ className, variant, size, asChild = false, children, ...props }, ref) => { // Destructured children
+    if (asChild) {
+      // Ensure that 'children' is a single React element.
+      // Slot expects a single child to clone.
+      // React.Children.only will throw an error if 'children' is not a single element.
+      let singleChild: React.ReactNode;
+      try {
+        singleChild = React.Children.only(children);
+      } catch (e: any) {
+        // Provide a more specific error if Button with asChild doesn't get a single child.
+        console.error(
+          "Button component with 'asChild' prop expects a single React element child. Received:",
+          children,
+          "Error:",
+          e.message
+        );
+        // Re-throw the error to make it visible during development.
+        // In a production build, you might handle this differently or let Next.js handle it.
+        throw new Error(`Button component with 'asChild' prop must have a single React element child. ${e.message}`);
+      }
+      return (
+        <Slot
+          className={cn(buttonVariants({ variant, size, className }))}
+          ref={ref}
+          {...props}
+        >
+          {singleChild}
+        </Slot>
+      );
+    }
     return (
-      <Comp
+      <button
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
-        {...props}
-      />
-    )
+        {...props} // Pass original props including children if not asChild
+      >
+        {children}
+      </button>
+    );
   }
 )
 Button.displayName = "Button"
