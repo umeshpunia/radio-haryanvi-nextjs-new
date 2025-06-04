@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useRef, useState } from 'react';
@@ -7,15 +8,15 @@ import {
   play,
   pause,
   setVolume,
-  setCurrentTime,
-  setDuration,
+  setCurrentTime, // Kept for potential future use or internal logic, though not directly used by removed elements
+  setDuration,  // Kept for potential future use or internal logic
   playNext,
   playPrevious,
   setCurrentTrack, // For initial load or testing
 } from '@/lib/redux/slices/audio-player-slice';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { PlayIcon, PauseIcon, SkipBackIcon, SkipForwardIcon, Volume2Icon, VolumeXIcon } from 'lucide-react';
+import { PlayIcon, PauseIcon, Volume2Icon, VolumeXIcon } from 'lucide-react'; // Removed SkipBackIcon, SkipForwardIcon
 import { cn } from '@/lib/utils';
 
 export function StickyAudioPlayer() {
@@ -91,18 +92,20 @@ export function StickyAudioPlayer() {
     }
   };
 
-  const handleSeek = (value: number[]) => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = value[0];
-      dispatch(setCurrentTime(value[0]));
-    }
-  };
+  // handleSeek is no longer needed as slider is removed
+  // const handleSeek = (value: number[]) => {
+  //   if (audioRef.current) {
+  //     audioRef.current.currentTime = value[0];
+  //     dispatch(setCurrentTime(value[0]));
+  //   }
+  // };
 
-  const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60).toString().padStart(2, '0');
-    return `${minutes}:${seconds}`;
-  };
+  // formatTime is no longer needed as time display is removed
+  // const formatTime = (time: number) => {
+  //   const minutes = Math.floor(time / 60);
+  //   const seconds = Math.floor(time % 60).toString().padStart(2, '0');
+  //   return `${minutes}:${seconds}`;
+  // };
 
   if (!currentTrack) {
     return null; 
@@ -119,7 +122,7 @@ export function StickyAudioPlayer() {
         src={currentTrack.url}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
-        onEnded={() => dispatch(playNext())}
+        onEnded={() => dispatch(playNext())} // Still dispatch playNext on ended, even if button is removed
         onError={(e) => console.error("Audio error:", e)}
       />
       <div className="container mx-auto flex items-center justify-between">
@@ -137,29 +140,15 @@ export function StickyAudioPlayer() {
           </div>
         </div>
 
-        <div className="flex flex-col items-center space-y-1 md:min-w-[300px]">
+        <div className="flex flex-col items-center space-y-1 md:min-w-[auto]"> {/* Adjusted min-w */}
           <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="icon" onClick={() => dispatch(playPrevious())} disabled={playlist.length <= 1}>
-              <SkipBackIcon className="h-5 w-5" />
-            </Button>
+            {/* Previous button removed */}
             <Button variant="ghost" size="icon" onClick={handlePlayPause} className="w-10 h-10">
               {isPlaying ? <PauseIcon className="h-6 w-6" /> : <PlayIcon className="h-6 w-6" />}
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => dispatch(playNext())} disabled={playlist.length <= 1}>
-              <SkipForwardIcon className="h-5 w-5" />
-            </Button>
+            {/* Next button removed */}
           </div>
-          <div className="flex w-full items-center space-x-2 text-xs">
-            <span>{formatTime(currentTime)}</span>
-            <Slider
-              value={[currentTime]}
-              max={duration || 0}
-              step={1}
-              onValueChange={handleSeek}
-              className="w-full md:w-48"
-            />
-            <span>{formatTime(duration)}</span>
-          </div>
+          {/* Progress bar and time display removed */}
         </div>
         
         <div className="flex items-center space-x-2">
