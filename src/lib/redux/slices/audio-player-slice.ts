@@ -2,10 +2,13 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface Track {
   id: string;
-  title: string;
-  artist: string;
+  title: string; // Station name or default title
+  artist: string; // "Live Stream" or default artist
   url: string;
   coverArt?: string;
+  // For dynamically fetched stream metadata
+  currentSongTitle?: string | null;
+  currentSongArtist?: string | null;
 }
 
 interface AudioPlayerState {
@@ -14,7 +17,7 @@ interface AudioPlayerState {
   isPlaying: boolean;
   volume: number;
   currentTime: number;
-  duration: number;
+  duration: number; // Duration might be Infinity for live streams
 }
 
 const initialState: AudioPlayerState = {
@@ -35,9 +38,14 @@ const audioPlayerSlice = createSlice({
     },
     setCurrentTrack: (state, action: PayloadAction<Track | null>) => {
       state.currentTrack = action.payload;
-      state.isPlaying = false; // Ensure no autoplay when track changes
+      state.isPlaying = false; 
       state.currentTime = 0;
       state.duration = 0;
+      if (state.currentTrack) {
+        // Reset dynamic metadata when track changes
+        state.currentTrack.currentSongTitle = null;
+        state.currentTrack.currentSongArtist = null;
+      }
     },
     play: (state) => {
       if (state.currentTrack) {
@@ -56,27 +64,41 @@ const audioPlayerSlice = createSlice({
     setDuration: (state, action: PayloadAction<number>) => {
       state.duration = action.payload;
     },
+    updateCurrentTrackMetadata: (state, action: PayloadAction<{ title?: string; artist?: string }>) => {
+      if (state.currentTrack) {
+        state.currentTrack.currentSongTitle = action.payload.title || state.currentTrack.currentSongTitle || null;
+        state.currentTrack.currentSongArtist = action.payload.artist || state.currentTrack.currentSongArtist || null;
+      }
+    },
     playNext: (state) => {
       if (!state.currentTrack || state.playlist.length === 0) return;
       const currentIndex = state.playlist.findIndex(track => track.id === state.currentTrack!.id);
       if (currentIndex !== -1 && currentIndex < state.playlist.length - 1) {
         state.currentTrack = state.playlist[currentIndex + 1];
-      } else { // Loop to first track or stop, here we loop
+      } else { 
         state.currentTrack = state.playlist[0];
       }
-      state.isPlaying = true; // Autoplay next track
+      state.isPlaying = true; 
       state.currentTime = 0;
+      if (state.currentTrack) {
+        state.currentTrack.currentSongTitle = null;
+        state.currentTrack.currentSongArtist = null;
+      }
     },
     playPrevious: (state) => {
       if (!state.currentTrack || state.playlist.length === 0) return;
       const currentIndex = state.playlist.findIndex(track => track.id === state.currentTrack!.id);
       if (currentIndex > 0) {
         state.currentTrack = state.playlist[currentIndex - 1];
-      } else { // Loop to last track or stop, here we loop
+      } else { 
         state.currentTrack = state.playlist[state.playlist.length - 1];
       }
-      state.isPlaying = true; // Autoplay previous track
+      state.isPlaying = true; 
       state.currentTime = 0;
+      if (state.currentTrack) {
+        state.currentTrack.currentSongTitle = null;
+        state.currentTrack.currentSongArtist = null;
+      }
     },
   },
 });
@@ -89,6 +111,7 @@ export const {
   setVolume,
   setCurrentTime,
   setDuration,
+  updateCurrentTrackMetadata,
   playNext,
   playPrevious,
 } = audioPlayerSlice.actions;
