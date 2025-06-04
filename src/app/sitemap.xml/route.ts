@@ -1,3 +1,4 @@
+
 import { fetchPostsFromApi } from '@/lib/wordpress'; // Assuming this fetches all posts for sitemap
 import { type NextRequest } from 'next/server'
 
@@ -10,6 +11,13 @@ const generateSitemap = (posts: any[], siteUrl: string) => {
     { url: '/', changefreq: 'daily', priority: '1.0' },
     { url: '/radio', changefreq: 'monthly', priority: '0.8' },
     { url: '/blog', changefreq: 'weekly', priority: '0.9' },
+    { url: '/donors', changefreq: 'weekly', priority: '0.8' },
+    { url: '/programs', changefreq: 'monthly', priority: '0.7' },
+    { url: '/about', changefreq: 'monthly', priority: '0.6' },
+    { url: '/contact', changefreq: 'monthly', priority: '0.5' },
+    { url: '/privacy', changefreq: 'monthly', priority: '0.4' },
+    { url: '/settings', changefreq: 'monthly', priority: '0.4' },
+    { url: '/more', changefreq: 'monthly', priority: '0.7' },
   ];
 
   staticPages.forEach(page => {

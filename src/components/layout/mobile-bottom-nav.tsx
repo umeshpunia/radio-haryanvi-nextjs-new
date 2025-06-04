@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HomeIcon, RssIcon, SettingsIcon, HeartHandshakeIcon, CalendarClockIcon } from 'lucide-react'; // Added CalendarClockIcon
+import { HomeIcon, RssIcon, HeartHandshakeIcon, LayoutGridIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function MobileBottomNav() {
@@ -11,9 +11,8 @@ export function MobileBottomNav() {
   const navItems = [
     { href: '/', label: 'Home', icon: <HomeIcon className="h-6 w-6" /> },
     { href: '/donors', label: 'Donors', icon: <HeartHandshakeIcon className="h-6 w-6" /> },
-    { href: '/programs', label: 'Programs', icon: <CalendarClockIcon className="h-6 w-6" /> },
     { href: '/blog', label: 'Blog', icon: <RssIcon className="h-6 w-6" /> },
-    { href: '/settings', label: 'Settings', icon: <SettingsIcon className="h-6 w-6" /> }, 
+    { href: '/more', label: 'More', icon: <LayoutGridIcon className="h-6 w-6" /> },
   ];
 
   return (
@@ -26,7 +25,7 @@ export function MobileBottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center space-y-1 rounded-md p-2 transition-colors w-[19%]", // Added width for better distribution
+                "flex flex-col items-center space-y-1 rounded-md p-2 transition-colors w-[24%]", // Adjusted width for 4 items
                 isActive ? "text-primary" : "text-muted-foreground hover:text-primary"
               )}
             >
