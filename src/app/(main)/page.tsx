@@ -83,30 +83,30 @@ export default function HomePage() {
       </div>
 
       <section className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-4xl mb-16">
-        <div className="flex flex-col items-center p-6 bg-card rounded-lg shadow-lg">
+        <div className="flex flex-col items-center p-6 bg-card rounded-lg shadow-lg h-full">
           <RadioIcon className="w-16 h-16 text-primary mb-4" />
-          <h3 className="font-headline text-2xl font-semibold mb-2">Live Radio</h3>
-          <p className="text-muted-foreground text-center mb-4">
+          <h3 className="font-headline text-2xl font-semibold mb-2 text-center">Live Radio</h3>
+          <p className="text-muted-foreground text-center mb-4 flex-grow">
             Tune into our 24/7 Haryanvi music stream.
           </p>
           <Button asChild>
             <Link href="/radio">Listen Now</Link>
           </Button>
         </div>
-        <div className="flex flex-col items-center p-6 bg-card rounded-lg shadow-lg">
+        <div className="flex flex-col items-center p-6 bg-card rounded-lg shadow-lg h-full">
           <RssIcon className="w-16 h-16 text-primary mb-4" />
-          <h3 className="font-headline text-2xl font-semibold mb-2">Latest Blogs</h3>
-          <p className="text-muted-foreground text-center mb-4">
+          <h3 className="font-headline text-2xl font-semibold mb-2 text-center">Latest Blogs</h3>
+          <p className="text-muted-foreground text-center mb-4 flex-grow">
             Explore articles on Haryanvi music, artists, and culture.
           </p>
           <Button asChild>
             <Link href="/blog">Read Blog</Link>
           </Button>
         </div>
-        <div className="flex flex-col items-center p-6 bg-card rounded-lg shadow-lg">
+        <div className="flex flex-col items-center p-6 bg-card rounded-lg shadow-lg h-full">
           <HeartHandshakeIcon className="w-16 h-16 text-primary mb-4" />
-          <h3 className="font-headline text-2xl font-semibold mb-2">Blood Donation</h3>
-          <p className="text-muted-foreground text-center mb-4">
+          <h3 className="font-headline text-2xl font-semibold mb-2 text-center">Blood Donation</h3>
+          <p className="text-muted-foreground text-center mb-4 flex-grow">
             Find or register as a blood donor. Save a life.
           </p>
           <Button asChild>
@@ -180,3 +180,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
