@@ -1,16 +1,24 @@
 
 import Link from 'next/link';
-import { RssIcon, HomeIcon, SettingsIcon, HeartHandshakeIcon, CalendarClockIcon } from 'lucide-react';
+import {
+  RssIcon,
+  HomeIcon,
+  HeartHandshakeIcon,
+  InfoIcon,
+  MailIcon,
+  ShieldCheckIcon
+} from 'lucide-react';
 import { ThemeToggleButton } from './theme-toggle-button';
 import { Button } from '@/components/ui/button';
 
 export function Header() {
   const navItems = [
-    { href: '/', label: 'Home', icon: <HomeIcon /> },
-    { href: '/donors', label: 'Donors', icon: <HeartHandshakeIcon /> }, 
-    { href: '/programs', label: 'Programs', icon: <CalendarClockIcon /> },
-    { href: '/blog', label: 'Blog', icon: <RssIcon /> },
-    { href: '/settings', label: 'Settings', icon: <SettingsIcon /> },
+    { href: '/', label: 'Home', icon: <HomeIcon className="h-5 w-5" /> },
+    { href: '/blog', label: 'Blog', icon: <RssIcon className="h-5 w-5" /> },
+    { href: '/donors', label: 'Donors', icon: <HeartHandshakeIcon className="h-5 w-5" /> },
+    { href: '/about', label: 'About', icon: <InfoIcon className="h-5 w-5" /> },
+    { href: '/contact', label: 'Contact', icon: <MailIcon className="h-5 w-5" /> },
+    { href: '/privacy', label: 'Privacy', icon: <ShieldCheckIcon className="h-5 w-5" /> },
   ];
 
   return (
