@@ -6,20 +6,17 @@ import {
   InfoIcon,
   MailIcon,
   ShieldCheckIcon,
-  HeartHandshakeIcon,
-  CalendarClockIcon,
-  SettingsIcon,
 } from 'lucide-react';
 import { ThemeToggleButton } from './theme-toggle-button';
 import { Button } from '@/components/ui/button';
 
 export function Header() {
   const navItems = [
-    { href: '/', label: 'Home' },
-    { href: '/blog', label: 'Blog' },
-    { href: '/about', label: 'About' },
-    { href: '/contact', label: 'Contact' },
-    { href: '/privacy', label: 'Privacy' },
+    { href: '/', label: 'Home'},
+    { href: '/blog', label: 'Blog'},
+    { href: '/about', label: 'About'},
+    { href: '/contact', label: 'Contact'},
+    { href: '/privacy', label: 'Privacy'},
   ];
 
   return (
@@ -32,7 +29,6 @@ export function Header() {
           {navItems.map((item) => (
             <Button key={item.href} variant="ghost" asChild className="mx-0.5">
               <Link href={item.href} className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary px-3 py-1.5">
-                {/* Icon removed from here */}
                 <span>{item.label}</span>
               </Link>
             </Button>
