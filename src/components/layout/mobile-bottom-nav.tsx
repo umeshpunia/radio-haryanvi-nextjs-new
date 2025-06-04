@@ -16,8 +16,8 @@ export function MobileBottomNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 p-2 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:hidden">
-      <div className="flex justify-around">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 p-1 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:hidden"> {/* Slightly reduced overall padding */}
+      <div className="flex justify-around items-stretch h-full"> {/* Ensure items stretch */}
         {navItems.map((item) => {
           const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
           return (
@@ -25,8 +25,8 @@ export function MobileBottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center space-y-1 rounded-md p-2 transition-colors w-[24%]", // Adjusted width for 4 items
-                isActive ? "text-primary" : "text-muted-foreground hover:text-primary"
+                "flex flex-1 flex-col items-center justify-center space-y-1 rounded-md p-2 transition-colors", // Use flex-1 for equal width, ensure justify-center
+                isActive ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-primary hover:bg-primary/5"
               )}
             >
               {item.icon}

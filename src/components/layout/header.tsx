@@ -19,10 +19,10 @@ export function Header() {
         <Link href="/" className="font-headline text-2xl font-bold text-primary">
           Radio Haryanvi
         </Link>
-        <nav className="flex items-center space-x-6 lg:space-x-8">
+        <nav className="flex items-center space-x-4 lg:space-x-6"> {/* Reduced space-x */}
           {navItems.map((item) => (
             <Button key={item.href} variant="ghost" asChild>
-              <Link href={item.href} className="flex items-center gap-3 text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
+              <Link href={item.href} className="flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-primary"> {/* Adjusted gap slightly */}
                 {item.icon}
                 <span>{item.label}</span>
               </Link>
