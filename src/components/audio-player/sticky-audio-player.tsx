@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils';
 import { Howl } from 'howler';
 
 // IMPORTANT: Replace this with the actual metadata URL from your stream provider
-const METADATA_URL_PLACEHOLDER = 'YOUR_METADATA_URL_HERE'; 
+const METADATA_URL = 'https://listen.weareharyanvi.com/'; 
 const METADATA_FETCH_INTERVAL = 15000; // Fetch metadata every 15 seconds
 
 export function StickyAudioPlayer() {
@@ -136,13 +136,13 @@ export function StickyAudioPlayer() {
   // Effect for fetching stream metadata
   useEffect(() => {
     const fetchMetadata = async () => {
-      if (!currentTrack || currentTrack.id !== 'liveRadioHaryanvi' || METADATA_URL_PLACEHOLDER === 'YOUR_METADATA_URL_HERE') {
+      if (!currentTrack || currentTrack.id !== 'liveRadioHaryanvi' || !METADATA_URL) {
         return;
       }
       try {
-        const response = await fetch(METADATA_URL_PLACEHOLDER);
+        const response = await fetch(METADATA_URL);
         if (!response.ok) {
-          console.warn(`Failed to fetch metadata: ${response.status} ${response.statusText}`);
+          console.warn(`Failed to fetch metadata: ${response.status} ${response.statusText} from ${METADATA_URL}`);
           return;
         }
         const data = await response.json();
@@ -153,7 +153,7 @@ export function StickyAudioPlayer() {
         dispatch(updateCurrentTrackMetadata({ title: songTitle, artist: songArtist }));
 
       } catch (error) {
-        console.warn('Error fetching or parsing stream metadata:', error);
+        console.warn(`Error fetching or parsing stream metadata from ${METADATA_URL}:`, error);
       }
     };
 
