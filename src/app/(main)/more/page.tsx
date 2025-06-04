@@ -8,13 +8,14 @@ import {
   InfoIcon,
   MailIcon,
   ChevronRightIcon,
-  LayoutGridIcon
+  LayoutGridIcon,
+  Gamepad2Icon // Added Gamepad2Icon
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 export const metadata: Metadata = {
   title: 'More Options - Radio Haryanvi',
-  description: 'Explore additional pages like settings, program schedules, privacy policy, about us, and contact information for Radio Haryanvi.',
+  description: 'Explore additional pages like settings, program schedules, privacy policy, about us, contact information, and games for Radio Haryanvi.',
 };
 
 interface MoreLinkItem {
@@ -54,6 +55,12 @@ const moreLinks: MoreLinkItem[] = [
     label: 'Privacy Policy',
     icon: <ShieldCheckIcon className="h-6 w-6 text-primary" />,
     description: 'Read our privacy policy.',
+  },
+  {
+    href: '/flappy-bird', // New link for Flappy Bird
+    label: 'Flappy Bird Game',
+    icon: <Gamepad2Icon className="h-6 w-6 text-primary" />,
+    description: 'Play a fun retro game.',
   },
 ];
 
