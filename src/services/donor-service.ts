@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { ref, push, set, get, serverTimestamp, query, orderByChild } from 'firebase/database'; // Removed equalTo as it's not used
+import { ref, push, set, get, serverTimestamp } from 'firebase/database';
 
 export interface Donor {
   id: string;
@@ -15,7 +15,7 @@ export interface Donor {
   area: string;
   description?: string;
   active: boolean;
-  timestamp: number; // serverTimestamp or Date.now()
+  timestamp: number; // serverTimestamp will resolve to a number
 }
 
 export interface NewDonorData {
@@ -42,9 +42,11 @@ function calculateAge(dob: string): number {
   return age;
 }
 
+// Internal helper function to capitalize the first letter of each word in a name.
 function capitalizeName(name: string): string {
   if (!name) return "";
   return name
+    .toLowerCase() // Optional: convert to lower case first for consistency
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
@@ -71,24 +73,29 @@ export async function addDonor(donorData: NewDonorData): Promise<Donor> {
     const formattedName = capitalizeName(donorData.name);
 
     const donorPayload = {
-      ...donorData,
-      name: formattedName,
+      ...donorData, // Spread original data first
+      name: formattedName, // Override name with formatted name
       age,
       active: true,
-      timestamp: serverTimestamp(),
+      timestamp: serverTimestamp(), // Firebase will convert this to a numeric timestamp
     };
 
     await set(newDonorRef, donorPayload);
     
-    const currentTimestamp = Date.now();
+    // For the immediate return, serverTimestamp() isn't resolved yet by Firebase.
+    // The actual numeric timestamp will be available on subsequent reads.
+    // We can use Date.now() for an immediate optimistic update if needed,
+    // but getDonors will fetch the server-generated timestamp.
+    const currentTimestamp = Date.now(); // For optimistic local state if needed
 
     return { 
       id: newDonorId, 
-      ...donorData,
-      name: formattedName, 
+      ...donorData,       // Use original donorData for other fields
+      name: formattedName, // Return the formatted name
       age,
       active: true,
-      timestamp: currentTimestamp 
+      timestamp: currentTimestamp // Return current client time for immediate display
+                                // getDonors() will fetch the server-set timestamp.
     };
   } catch (error: any) {
     console.error('Error adding donor:', error);
@@ -102,7 +109,6 @@ export async function addDonor(donorData: NewDonorData): Promise<Donor> {
 export async function getDonors(): Promise<Donor[]> {
   try {
     const donorsRef = ref(db, DONORS_PATH);
-    // Removed orderByChild('name') for simplicity, client-side sort by timestamp is already present
     const snapshot = await get(donorsRef);
 
     if (snapshot.exists()) {
@@ -134,4 +140,3 @@ export async function getDonorById(donorId: string): Promise<Donor | null> {
     throw new Error(`Could not retrieve donor with ID ${donorId}.`);
   }
 }
-

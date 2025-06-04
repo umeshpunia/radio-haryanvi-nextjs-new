@@ -2,7 +2,7 @@
 import { Donor } from "@/services/donor-service";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { DropletsIcon, MapPinIcon, UserIcon, PhoneIcon, CalendarDaysIcon, HeartPulseIcon } from "lucide-react"; // Added HeartPulseIcon
+import { MapPinIcon, UserIcon, PhoneIcon, CalendarDaysIcon, HeartPulseIcon } from "lucide-react";
 
 interface DonorCardProps {
   donor: Donor;
@@ -43,7 +43,7 @@ export function DonorCard({ donor }: DonorCardProps) {
       <CardFooter>
         <div className="text-xs text-muted-foreground flex items-center">
           <CalendarDaysIcon className="h-3 w-3 mr-1" />
-          Registered on: {new Date(donor.timestamp).toLocaleDateString()}
+          Registered on: {donor.timestamp ? new Date(donor.timestamp).toLocaleDateString() : 'N/A'}
         </div>
       </CardFooter>
     </Card>
