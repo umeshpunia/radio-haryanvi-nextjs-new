@@ -2,14 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HomeIcon, RadioIcon, RssIcon } from 'lucide-react';
+import { HomeIcon, RssIcon, SettingsIcon } from 'lucide-react'; // Added SettingsIcon
 import { cn } from '@/lib/utils';
 
 export function MobileBottomNav() {
   const pathname = usePathname();
   const navItems = [
     { href: '/', label: 'Home', icon: <HomeIcon className="h-6 w-6" /> },
-    { href: '/radio', label: 'Radio', icon: <RadioIcon className="h-6 w-6" /> },
+    { href: '/settings', label: 'Settings', icon: <SettingsIcon className="h-6 w-6" /> }, // Changed from Radio to Settings
     { href: '/blog', label: 'Blog', icon: <RssIcon className="h-6 w-6" /> },
   ];
 

@@ -1,12 +1,12 @@
 import Link from 'next/link';
-import { RadioIcon, RssIcon, HomeIcon } from 'lucide-react';
+import { RssIcon, HomeIcon, SettingsIcon } from 'lucide-react'; // Added SettingsIcon
 import { ThemeToggleButton } from './theme-toggle-button';
 import { Button } from '@/components/ui/button';
 
 export function Header() {
   const navItems = [
     { href: '/', label: 'Home', icon: <HomeIcon className="h-5 w-5" /> },
-    { href: '/radio', label: 'Radio', icon: <RadioIcon className="h-5 w-5" /> },
+    { href: '/settings', label: 'Settings', icon: <SettingsIcon className="h-5 w-5" /> }, // Changed from Radio to Settings
     { href: '/blog', label: 'Blog', icon: <RssIcon className="h-5 w-5" /> },
   ];
 
