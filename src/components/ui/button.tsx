@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
@@ -40,41 +41,67 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, children, ...props }, ref) => { // Destructured children
+  ({ className, variant, size, asChild = false, children, ...props }, ref) => {
     if (asChild) {
-      // Ensure that 'children' is a single React element.
-      // Slot expects a single child to clone.
-      // React.Children.only will throw an error if 'children' is not a single element.
-      let singleChild: React.ReactNode;
+      let singleValidElementChild: React.ReactElement;
       try {
-        singleChild = React.Children.only(children);
+        // 1. Ensure children is not undefined or null
+        if (children === undefined || children === null) {
+          throw new Error("Children prop is null or undefined.");
+        }
+
+        // 2. Convert children to an array to handle fragments and count elements
+        const childrenArray = React.Children.toArray(children);
+
+        // 3. Check if there's exactly one child in the array
+        if (childrenArray.length !== 1) {
+          // Attempt to stringify, might fail for complex objects but good for diagnostics
+          let childrenDetails = 'unknown';
+          try {
+            childrenDetails = JSON.stringify(childrenArray.map(c => typeof c));
+          } catch (_) { /* ignore stringify error */ }
+          throw new Error(`Expected 1 child, but got ${childrenArray.length}. Children types: ${childrenDetails}. Children array: ${String(childrenArray)}`);
+        }
+
+        // 4. Check if that single child is a valid React element
+        const firstChild = childrenArray[0];
+        if (!React.isValidElement(firstChild)) {
+          let childDetails = 'unknown';
+          try {
+            childDetails = JSON.stringify(firstChild);
+          } catch (_) { /* ignore stringify error */ }
+          throw new Error(`Child is not a valid React element. Child: ${childDetails}`);
+        }
+        // Now we are confident it's a single, valid React element.
+        singleValidElementChild = firstChild as React.ReactElement;
+
       } catch (e: any) {
-        // Provide a more specific error if Button with asChild doesn't get a single child.
         console.error(
-          "Button component with 'asChild' prop expects a single React element child. Received:",
-          children,
-          "Error:",
-          e.message
+          "CUSTOM ERROR FROM BUTTON.TSX: Button component with 'asChild' prop has an issue with its children.",
+          "Received children:", children,
+          "Underlying error message:", e.message,
+          "Underlying error stack:", e.stack
         );
-        // Re-throw the error to make it visible during development.
-        // In a production build, you might handle this differently or let Next.js handle it.
-        throw new Error(`Button component with 'asChild' prop must have a single React element child. ${e.message}`);
+        // Re-throw with a more specific message for easier identification
+        throw new Error(`Button 'asChild' validation error: ${e.message}`);
       }
+
       return (
         <Slot
           className={cn(buttonVariants({ variant, size, className }))}
           ref={ref}
           {...props}
         >
-          {singleChild}
+          {singleValidElementChild}
         </Slot>
       );
     }
+
     return (
       <button
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
-        {...props} // Pass original props including children if not asChild
+        {...props}
       >
         {children}
       </button>
