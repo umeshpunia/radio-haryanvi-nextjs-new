@@ -1,16 +1,18 @@
+
 "use client";
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HomeIcon, RssIcon, SettingsIcon } from 'lucide-react'; // Added SettingsIcon
+import { HomeIcon, RssIcon, SettingsIcon, HeartHandshakeIcon } from 'lucide-react'; // Added SettingsIcon, HeartHandshakeIcon
 import { cn } from '@/lib/utils';
 
 export function MobileBottomNav() {
   const pathname = usePathname();
   const navItems = [
     { href: '/', label: 'Home', icon: <HomeIcon className="h-6 w-6" /> },
-    { href: '/settings', label: 'Settings', icon: <SettingsIcon className="h-6 w-6" /> }, // Changed from Radio to Settings
+    { href: '/donors', label: 'Donors', icon: <HeartHandshakeIcon className="h-6 w-6" /> },
     { href: '/blog', label: 'Blog', icon: <RssIcon className="h-6 w-6" /> },
+    { href: '/settings', label: 'Settings', icon: <SettingsIcon className="h-6 w-6" /> }, 
   ];
 
   return (

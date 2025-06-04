@@ -2,25 +2,51 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { ref, push, set, get, child, serverTimestamp } from 'firebase/database';
+import { ref, push, set, get, child, serverTimestamp, query, orderByChild, equalTo } from 'firebase/database';
 
 export interface Donor {
   id: string;
   name: string;
-  amount: number;
-  message?: string;
-  timestamp: number;
+  mobile: string;
+  dob: string; // YYYY-MM-DD
+  age: number;
+  bloodGroup: string; // e.g., "A+", "B-", "O+"
+  address: string;
+  area: string;
+  description?: string;
+  active: boolean;
+  timestamp: number; // serverTimestamp or Date.now()
 }
 
 export interface NewDonorData {
   name: string;
-  amount: number;
-  message?: string;
+  mobile: string;
+  dob: string; // YYYY-MM-DD
+  bloodGroup: string;
+  address: string;
+  area: string;
+  description?: string;
 }
 
 const DONORS_PATH = 'donors';
 
+export function calculateAge(dob: string): number {
+  const birthDate = new Date(dob);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
+}
+
 export async function addDonor(donorData: NewDonorData): Promise<Donor> {
+  const age = calculateAge(donorData.dob);
+  if (age < 18) {
+    throw new Error('Donor must be at least 18 years old.');
+  }
+
   try {
     const donorsRef = ref(db, DONORS_PATH);
     const newDonorRef = push(donorsRef);
@@ -32,33 +58,47 @@ export async function addDonor(donorData: NewDonorData): Promise<Donor> {
 
     const donorPayload = {
       ...donorData,
+      age,
+      active: true,
       timestamp: serverTimestamp(),
     };
 
     await set(newDonorRef, donorPayload);
     
-    // Firebase serverTimestamp is an object, for immediate return we'll use current client time
-    // For actual stored value, it will be server time.
-    // Or fetch the data again if exact server timestamp is needed immediately.
+    // For immediate return, we'll use current client time for timestamp and provided data.
+    // The actual stored value for timestamp will be server time.
     const currentTimestamp = Date.now();
 
-    return { id: newDonorId, ...donorData, timestamp: currentTimestamp };
-  } catch (error) {
+    return { 
+      id: newDonorId, 
+      ...donorData, 
+      age,
+      active: true,
+      timestamp: currentTimestamp 
+    };
+  } catch (error: any) {
     console.error('Error adding donor:', error);
+    // Re-throw specific error for age validation if it's the cause
+    if (error.message === 'Donor must be at least 18 years old.') {
+        throw error;
+    }
     throw new Error('Could not add donor.');
   }
 }
 
 export async function getDonors(): Promise<Donor[]> {
   try {
-    const dbRef = ref(db);
-    const snapshot = await get(child(dbRef, DONORS_PATH));
+    const donorsRef = ref(db, DONORS_PATH);
+    // Order by name for consistent listing, can be changed
+    const donorsQuery = query(donorsRef, orderByChild('name')); 
+    const snapshot = await get(donorsQuery);
+
     if (snapshot.exists()) {
       const donorsData = snapshot.val();
       return Object.keys(donorsData).map((key) => ({
         id: key,
         ...donorsData[key],
-      }));
+      })).sort((a, b) => b.timestamp - a.timestamp); // Sort by most recent first
     } else {
       return [];
     }
@@ -70,8 +110,8 @@ export async function getDonors(): Promise<Donor[]> {
 
 export async function getDonorById(donorId: string): Promise<Donor | null> {
   try {
-    const dbRef = ref(db);
-    const snapshot = await get(child(dbRef, `${DONORS_PATH}/${donorId}`));
+    const dbRef = ref(db, `${DONORS_PATH}/${donorId}`);
+    const snapshot = await get(dbRef);
     if (snapshot.exists()) {
       return { id: snapshot.key as string, ...snapshot.val() } as Donor;
     } else {
