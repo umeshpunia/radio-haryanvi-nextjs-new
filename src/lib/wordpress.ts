@@ -1,5 +1,5 @@
 // Using a public demo WordPress site for example
-const WP_API_BASE_URL = 'https://dev-headless-wp.pantheonsite.io/wp-json/wp/v2';
+const WP_API_BASE_URL = 'https://blog.weareharyanvi.com/wp-json/wp/v2';
 // const WP_API_BASE_URL = 'https://your-wordpress-site.com/wp-json/wp/v2'; // Replace with your actual WordPress site URL
 
 export interface Post {
