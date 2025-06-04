@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { SettingsIcon } from 'lucide-react';
+import { ThemeToggleButton } from '@/components/layout/theme-toggle-button';
 
 export const metadata: Metadata = {
   title: 'Settings - Haryanvi Radio Hub',
@@ -15,13 +16,14 @@ export default function SettingsPage() {
           App Settings
         </h1>
         <p className="text-lg text-muted-foreground mb-8 max-w-xl">
-          This is the settings page. You can manage your preferences here.
+          Manage your application preferences here.
         </p>
         <div className="p-8 bg-card rounded-lg shadow-md w-full max-w-md">
-          <h2 className="font-headline text-2xl font-semibold mb-3">Configuration Options</h2>
-          <p className="text-muted-foreground">
-            Settings content will go here.
+          <h2 className="font-headline text-2xl font-semibold mb-3">Theme Configuration</h2>
+          <p className="text-muted-foreground mb-4">
+            Choose your preferred application theme.
           </p>
+          <ThemeToggleButton />
         </div>
       </div>
     </div>
