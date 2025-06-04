@@ -28,11 +28,23 @@ import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { addDonor, NewDonorData, calculateAge } from "@/services/donor-service";
+import { addDonor, NewDonorData } from "@/services/donor-service"; // Removed calculateAge from this import
 import { useToast } from "@/hooks/use-toast";
 import React from "react";
 
 const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+
+// Define calculateAge locally
+function calculateAge(dobString: string): number {
+  const birthDate = new Date(dobString);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
+}
 
 const donorFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }).max(50),
@@ -243,3 +255,4 @@ export function DonorForm({ onSuccess, setOpen }: DonorFormProps) {
     </Form>
   );
 }
+

@@ -27,16 +27,76 @@ import {
 
 const bloodGroups = ["All", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
+// Skeleton for the card, used in DonorsPageSkeleton and isLoading state
+function CardSkeleton() {
+  return (
+    <div className="flex flex-col space-y-3 p-6 border rounded-lg bg-card shadow-md">
+      <div className="flex justify-between items-center">
+        <Skeleton className="h-7 w-3/4" />
+        <Skeleton className="h-5 w-16" />
+      </div>
+      <Skeleton className="h-4 w-1/2" />
+      <div className="space-y-2 pt-2">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-5/6" />
+        <Skeleton className="h-4 w-full" />
+      </div>
+      <Skeleton className="h-4 w-1/3 mt-2" />
+    </div>
+  );
+}
+
+// Skeleton for the entire DonorsPage, shown before client-side hydration
+function DonorsPageSkeleton() {
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <header className="mb-8 text-center">
+        <Skeleton className="w-16 h-16 mx-auto mb-4 rounded-full" />
+        <Skeleton className="h-10 w-3/4 md:w-1/2 mx-auto mb-2" />
+        <Skeleton className="h-6 w-1/2 md:w-1/3 mx-auto" />
+      </header>
+      <div className="mb-8 p-6 bg-card rounded-lg shadow-md">
+        <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-6">
+            <Skeleton className="h-8 w-36" />
+            <Skeleton className="h-10 w-48" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+          <div className="space-y-1">
+            <Skeleton className="h-4 w-20 mb-1" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+          <div className="space-y-1">
+            <Skeleton className="h-4 w-24 mb-1" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+          <Skeleton className="h-10 w-full md:w-auto" />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[...Array(3)].map((_, i) => (
+          <CardSkeleton key={i} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
 export default function DonorsPage() {
+  const [isClient, setIsClient] = useState(false);
   const [donors, setDonors] = useState<Donor[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true); // isLoading now primarily for data fetching
   const [error, setError] = useState<string | null>(null);
 
   const [bloodGroupFilter, setBloodGroupFilter] = useState<string>("All");
   const [locationFilter, setLocationFilter] = useState<string>("");
   const [isFormOpen, setIsFormOpen] = useState(false);
 
-  const fetchAndSetDonors = async () => {
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const fetchAndSetDonors = React.useCallback(async () => {
     setIsLoading(true);
     try {
       const fetchedDonors = await getDonors();
@@ -48,11 +108,13 @@ export default function DonorsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []); // Empty dependency array as it doesn't depend on component state/props directly
 
   useEffect(() => {
-    fetchAndSetDonors();
-  }, []);
+    if (isClient) {
+      fetchAndSetDonors();
+    }
+  }, [isClient, fetchAndSetDonors]);
 
   const filteredDonors = useMemo(() => {
     return donors.filter((donor) => {
@@ -70,6 +132,10 @@ export default function DonorsPage() {
     setBloodGroupFilter("All");
     setLocationFilter("");
   };
+  
+  if (!isClient) {
+    return <DonorsPageSkeleton />;
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -148,7 +214,7 @@ export default function DonorsPage() {
         </div>
       </div>
 
-      {isLoading && (
+      {isLoading && ( // This isLoading is true after isClient is true, during data fetch
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
             <CardSkeleton key={i} />
@@ -178,20 +244,4 @@ export default function DonorsPage() {
   );
 }
 
-function CardSkeleton() {
-  return (
-    <div className="flex flex-col space-y-3 p-6 border rounded-lg bg-card shadow-md">
-      <div className="flex justify-between items-center">
-        <Skeleton className="h-7 w-3/4" />
-        <Skeleton className="h-5 w-16" />
-      </div>
-      <Skeleton className="h-4 w-1/2" />
-      <div className="space-y-2 pt-2">
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-5/6" />
-        <Skeleton className="h-4 w-full" />
-      </div>
-      <Skeleton className="h-4 w-1/3 mt-2" />
-    </div>
-  );
-}
+    
