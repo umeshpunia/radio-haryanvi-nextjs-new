@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HomeIcon, RssIcon, SettingsIcon, HeartHandshakeIcon } from 'lucide-react'; // Added SettingsIcon, HeartHandshakeIcon
+import { HomeIcon, RssIcon, SettingsIcon, HeartHandshakeIcon, CalendarClockIcon } from 'lucide-react'; // Added CalendarClockIcon
 import { cn } from '@/lib/utils';
 
 export function MobileBottomNav() {
@@ -11,6 +11,7 @@ export function MobileBottomNav() {
   const navItems = [
     { href: '/', label: 'Home', icon: <HomeIcon className="h-6 w-6" /> },
     { href: '/donors', label: 'Donors', icon: <HeartHandshakeIcon className="h-6 w-6" /> },
+    { href: '/programs', label: 'Programs', icon: <CalendarClockIcon className="h-6 w-6" /> },
     { href: '/blog', label: 'Blog', icon: <RssIcon className="h-6 w-6" /> },
     { href: '/settings', label: 'Settings', icon: <SettingsIcon className="h-6 w-6" /> }, 
   ];
@@ -25,12 +26,12 @@ export function MobileBottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center space-y-1 rounded-md p-2 transition-colors",
+                "flex flex-col items-center space-y-1 rounded-md p-2 transition-colors w-[19%]", // Added width for better distribution
                 isActive ? "text-primary" : "text-muted-foreground hover:text-primary"
               )}
             >
               {item.icon}
-              <span className="text-xs">{item.label}</span>
+              <span className="text-xs text-center break-words">{item.label}</span>
             </Link>
           );
         })}

@@ -5,17 +5,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioIcon, RssIcon, HeadphonesIcon, UsersIcon, VenetianMaskIcon, Music2Icon } from 'lucide-react';
 import type { Metadata } from 'next';
+import { CurrentProgramDisplay } from '@/components/programs/current-program-display'; // Import the new component
 
 export const metadata: Metadata = {
   title: 'Radio Haryanvi | Live Haryanvi Music, Songs & Haryana Culture',
   description: 'Tune into Radio Haryanvi 24/7 for live Haryanvi music, discover new Haryanvi songs and artists, and explore the rich culture of Haryana. Your number one source for Haryanvi entertainment and Haryana radio.',
-  keywords: ['radio haryanvi', 'haryanvi', 'haryana', 'radio haryana', 'haryanvi music', 'live haryanvi radio', 'haryanvi songs', 'haryanvi culture', 'haryanvi folk music', 'haryanvi artists', 'best haryanvi music streaming', 'haryanvi top charts', 'latest haryanvi tracks', 'haryanvi singers', 'haryanvi ragni', 'haryanvi saang'],
+  keywords: ['radio haryanvi', 'haryanvi', 'haryana', 'radio haryana', 'haryanvi music', 'live haryanvi radio', 'haryanvi songs', 'haryanvi culture', 'haryanvi folk music', 'haryanvi artists', 'best haryanvi music streaming', 'haryanvi top charts', 'latest haryanvi tracks', 'haryanvi singers', 'haryanvi ragni', 'haryanvi saang', 'haryanvi programs'],
   openGraph: {
     title: 'Radio Haryanvi | Live Haryanvi Music & Culture',
     description: 'Your ultimate destination for authentic Haryanvi music, live radio, and cultural insights from Haryana.',
     images: [
       {
-        url: '/og-image-home.png', // Create this image in your /public folder
+        url: '/og-image-home.png', 
         width: 1200,
         height: 630,
         alt: 'Radio Haryanvi - Live Haryanvi Music Stream & Culture Hub',
@@ -27,7 +28,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Radio Haryanvi | Stream Live Haryanvi Music & Explore Culture',
     description: 'Listen to the best Haryanvi songs, discover artists, and dive into Haryana culture with Radio Haryanvi.',
-    images: ['/twitter-image-home.png'], // Create this image in your /public folder
+    images: ['/twitter-image-home.png'], 
   },
 };
 
@@ -76,7 +77,8 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
         <div className="absolute bottom-0 left-0 p-8">
           <h2 className="font-headline text-3xl md:text-4xl font-semibold text-white mb-2">Feel the Rhythm of Haryana</h2>
-          <p className="text-base md:text-lg text-gray-200">Live Radio Streaming Now!</p>
+          {/* Display current program here */}
+          <CurrentProgramDisplay />
         </div>
       </div>
 
