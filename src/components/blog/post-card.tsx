@@ -1,9 +1,10 @@
+
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Post } from '@/lib/wordpress';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CalendarDays, UserCircle } from 'lucide-react';
+import { CalendarDays } from 'lucide-react'; // Removed UserCircle
 
 interface PostCardProps {
   post: Post;
@@ -11,7 +12,7 @@ interface PostCardProps {
 
 export function PostCard({ post }: PostCardProps) {
   const featuredImageUrl = post._embedded?.['wp:featuredmedia']?.[0]?.source_url || `https://placehold.co/600x400.png`;
-  const authorName = post._embedded?.author?.[0]?.name || 'Unknown Author';
+  // const authorName = post._embedded?.author?.[0]?.name || 'Unknown Author'; // Author removed
   const postDate = new Date(post.date).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -49,10 +50,7 @@ export function PostCard({ post }: PostCardProps) {
             <CalendarDays className="h-4 w-4" />
             <span>{postDate}</span>
           </div>
-          <div className="flex items-center space-x-1">
-            <UserCircle className="h-4 w-4" />
-            <span>{authorName}</span>
-          </div>
+          {/* Author display removed */}
         </div>
       </CardContent>
       <CardFooter className="p-6 pt-0">

@@ -1,21 +1,20 @@
 
-import { fetchPostBySlugApi, fetchAuthorApi, Post, Author } from '@/lib/wordpress';
+import { fetchPostBySlugApi, Post } from '@/lib/wordpress';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { Metadata, ResolvingMetadata } from 'next';
-import { CalendarDays, UserCircle } from 'lucide-react';
+import { CalendarDays } from 'lucide-react';
 
 type Props = {
   params: { slug: string };
 };
 
-async function getPostData(slug: string): Promise<{ post: Post | null; author: Author | null }> {
+async function getPostData(slug: string): Promise<{ post: Post | null }> {
   const post = await fetchPostBySlugApi(slug);
   if (!post) {
-    return { post: null, author: null };
+    return { post: null };
   }
-  const author = post.author ? await fetchAuthorApi(post.author) : null;
-  return { post, author };
+  return { post };
 }
 
 export async function generateMetadata({ params }: Props, parent: ResolvingMetadata): Promise<Metadata> {
@@ -38,7 +37,7 @@ export async function generateMetadata({ params }: Props, parent: ResolvingMetad
       description: post.excerpt.rendered.replace(/<[^>]+>/g, '').substring(0, 160),
       type: 'article',
       publishedTime: post.date,
-      authors: post._embedded?.author?.[0]?.name ? [post._embedded.author[0].name] : [],
+      // authors: post._embedded?.author?.[0]?.name ? [post._embedded.author[0].name] : [], // Author removed
       images: featuredImageUrl ? [featuredImageUrl, ...previousImages] : previousImages,
     },
     twitter: {
@@ -51,14 +50,13 @@ export async function generateMetadata({ params }: Props, parent: ResolvingMetad
 }
 
 export default async function BlogPostPage({ params }: Props) {
-  const { post, author } = await getPostData(params.slug);
+  const { post } = await getPostData(params.slug);
 
   if (!post) {
     notFound();
   }
 
   const featuredImageUrl = post._embedded?.['wp:featuredmedia']?.[0]?.source_url;
-  const authorName = author?.name || post._embedded?.author?.[0]?.name || 'Unknown Author';
   const postDate = new Date(post.date).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -77,10 +75,7 @@ export default async function BlogPostPage({ params }: Props) {
             <CalendarDays className="h-4 w-4" />
             <span>{postDate}</span>
           </div>
-          <div className="flex items-center space-x-1">
-            <UserCircle className="h-4 w-4" />
-            <span>By {authorName}</span>
-          </div>
+          {/* Author display removed */}
         </div>
       </header>
 
