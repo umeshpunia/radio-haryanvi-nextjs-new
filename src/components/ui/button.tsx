@@ -1,4 +1,6 @@
 
+"use client"
+
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
@@ -43,47 +45,27 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, children, ...props }, ref) => {
     if (asChild) {
-      let singleValidElementChild: React.ReactElement;
-      try {
-        // 1. Ensure children is not undefined or null
-        if (children === undefined || children === null) {
-          throw new Error("Children prop is null or undefined.");
-        }
+      const childrenArray = React.Children.toArray(children);
 
-        // 2. Convert children to an array to handle fragments and count elements
-        const childrenArray = React.Children.toArray(children);
-
-        // 3. Check if there's exactly one child in the array
-        if (childrenArray.length !== 1) {
-          // Attempt to stringify, might fail for complex objects but good for diagnostics
-          let childrenDetails = 'unknown';
-          try {
-            childrenDetails = JSON.stringify(childrenArray.map(c => typeof c));
-          } catch (_) { /* ignore stringify error */ }
-          throw new Error(`Expected 1 child, but got ${childrenArray.length}. Children types: ${childrenDetails}. Children array: ${String(childrenArray)}`);
-        }
-
-        // 4. Check if that single child is a valid React element
-        const firstChild = childrenArray[0];
-        if (!React.isValidElement(firstChild)) {
-          let childDetails = 'unknown';
-          try {
-            childDetails = JSON.stringify(firstChild);
-          } catch (_) { /* ignore stringify error */ }
-          throw new Error(`Child is not a valid React element. Child: ${childDetails}`);
-        }
-        // Now we are confident it's a single, valid React element.
-        singleValidElementChild = firstChild as React.ReactElement;
-
-      } catch (e: any) {
-        console.error(
-          "CUSTOM ERROR FROM BUTTON.TSX: Button component with 'asChild' prop has an issue with its children.",
-          "Received children:", children,
-          "Underlying error message:", e.message,
-          "Underlying error stack:", e.stack
-        );
-        // Re-throw with a more specific message for easier identification
-        throw new Error(`Button 'asChild' validation error: ${e.message}`);
+      if (childrenArray.length !== 1) {
+        let childrenDetails = 'unknown (error in stringification)';
+        try {
+          childrenDetails = childrenArray.map(c => typeof c).join(', ');
+        } catch (_) { /* ignore */ }
+        const errorMessage = `CUSTOM ERROR FROM BUTTON.TSX (V3): 'asChild' expects exactly one child, but received ${childrenArray.length}. Child types: [${childrenDetails}]`;
+        console.error(errorMessage, "Actual children object:", children);
+        throw new Error(errorMessage);
+      }
+      
+      const firstChild = childrenArray[0];
+      if (!React.isValidElement(firstChild)) {
+        let childDetail = 'unknown (error in stringification)';
+        try {
+          childDetail = String(firstChild);
+        } catch (_) { /* ignore */ }
+        const errorMessage = `CUSTOM ERROR FROM BUTTON.TSX (V3): Child provided to 'asChild' Button is not a valid React element. Child: ${childDetail}`;
+        console.error(errorMessage, "Actual child object:", firstChild);
+        throw new Error(errorMessage);
       }
 
       return (
@@ -92,7 +74,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           ref={ref}
           {...props}
         >
-          {singleValidElementChild}
+          {firstChild}
         </Slot>
       );
     }
