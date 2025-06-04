@@ -113,9 +113,10 @@ export function StickyAudioPlayer() {
 
   return (
     <div className={cn(
-      "fixed bottom-0 left-0 right-0 z-40 border-t bg-background/95 p-3 backdrop-blur supports-[backdrop-filter]:bg-background/60",
-      "md:bottom-0 md:pb-3", // Desktop: ensure it's above potential footer elements or adjust as needed
-      "pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-3" // Mobile: Adjust padding for mobile nav
+      "fixed left-0 right-0 z-40 border-t bg-background/95 p-3 backdrop-blur supports-[backdrop-filter]:bg-background/60",
+      // Mobile: position 0.5rem (theme.spacing.2) above the mobile nav (4.5rem + safe area)
+      // Desktop: position 0.5rem (theme.spacing.2) from the bottom of the viewport
+      "bottom-[calc(4.5rem+env(safe-area-inset-bottom)+0.5rem)] md:bottom-2"
     )}>
       <audio
         ref={audioRef}
