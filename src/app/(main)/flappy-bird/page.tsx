@@ -1,11 +1,15 @@
 
-import { Metadata } from 'next';
-import { Gamepad2Icon } from 'lucide-react';
+"use client"; // Required for FlappyBirdGame component
 
-export const metadata: Metadata = {
-  title: 'Flappy Bird Game - Radio Haryanvi',
-  description: 'Play a fun game of Flappy Bird on Radio Haryanvi.',
-};
+import { Metadata } from 'next'; // Still can have metadata if needed at build time for the page itself
+import { Gamepad2Icon } from 'lucide-react';
+import FlappyBirdGame from '@/components/games/flappy-bird-game'; // Import the game component
+
+// Metadata can still be defined for server rendering part of the page shell
+// export const metadata: Metadata = {
+//   title: 'Flappy Bird Game - Radio Haryanvi',
+//   description: 'Play a fun game of Flappy Bird on Radio Haryanvi.',
+// };
 
 export default function FlappyBirdPage() {
   return (
@@ -16,21 +20,15 @@ export default function FlappyBirdPage() {
           Flappy Bird Game
         </h1>
         <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-          Get ready to flap! This game is under construction. Check back soon!
+          Test your skills and see how far you can fly!
         </p>
       </header>
 
-      <section className="max-w-md mx-auto text-center p-8 bg-card rounded-lg shadow-xl">
-        <h2 className="font-headline text-2xl font-semibold text-primary mb-4">
+      <section className="max-w-md mx-auto text-center p-6 bg-card rounded-lg shadow-xl">
+        <h2 className="font-headline text-2xl font-semibold text-primary mb-6">
           Game Area
         </h2>
-        <p className="text-muted-foreground">
-          The Flappy Bird game will be displayed here. We are working on bringing this fun feature to you.
-        </p>
-        {/* Placeholder for game canvas or component */}
-        <div className="mt-6 w-full h-64 bg-muted rounded-md flex items-center justify-center">
-          <p className="text-muted-foreground">Game Coming Soon!</p>
-        </div>
+        <FlappyBirdGame />
       </section>
     </div>
   );
