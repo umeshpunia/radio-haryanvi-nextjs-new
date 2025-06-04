@@ -56,8 +56,8 @@ const donorFormSchema = z.object({
     }, { message: "Donor must be at least 18 years old." })
     .refine((date) => {
       const age = calculateAge(format(date, "yyyy-MM-dd"));
-      return age < 30;
-    }, { message: "Donor must be less than 30 years old." }),
+      return age <= 50;
+    }, { message: "Donor must be 50 years old or younger." }),
   bloodGroup: z.string({ required_error: "Please select a blood group." }).refine(val => bloodGroups.includes(val), { message: "Invalid blood group" }),
   address: z.string().min(5, { message: "Address must be at least 5 characters." }).max(100),
   area: z.string().min(3, { message: "Area must be at least 3 characters." }).max(50),
@@ -94,12 +94,12 @@ export function DonorForm({ onSuccess, setOpen }: DonorFormProps) {
   const maxSelectableDOB = new Date(today);
   maxSelectableDOB.setFullYear(today.getFullYear() - 18);
 
-  // Earliest allowed DOB (to be less than 30 years old)
-  // This means the person is 29 at most.
-  // If born exactly 30 years ago, they are 30. We need DOB to be after that.
+  // Earliest allowed DOB (to be 50 years old or younger)
+  // This means the person is 50 at most.
+  // If born exactly 51 years ago, they are 51. We need DOB to be after that.
   const earliestSelectableDOB = new Date(today);
-  earliestSelectableDOB.setFullYear(today.getFullYear() - 30);
-  earliestSelectableDOB.setDate(earliestSelectableDOB.getDate() + 1); // Day after 30th birthday in the past
+  earliestSelectableDOB.setFullYear(today.getFullYear() - 51); 
+  earliestSelectableDOB.setDate(earliestSelectableDOB.getDate() + 1); // Day after 51st birthday in the past
 
 
   async function onSubmit(data: DonorFormValues) {
@@ -187,7 +187,7 @@ export function DonorForm({ onSuccess, setOpen }: DonorFormProps) {
                     mode="single"
                     selected={field.value}
                     onSelect={field.onChange}
-                    defaultMonth={maxSelectableDOB} // Start view at latest possible DOB for 18 y.o.
+                    defaultMonth={maxSelectableDOB} 
                     disabled={(date) => 
                         date > maxSelectableDOB || date < earliestSelectableDOB
                     }
@@ -199,7 +199,7 @@ export function DonorForm({ onSuccess, setOpen }: DonorFormProps) {
                 </PopoverContent>
               </Popover>
               <FormDescription>
-                Your date of birth is used to calculate your age. Donor must be between 18 and 29 years old.
+                Your date of birth is used to calculate your age. Donor must be between 18 and 50 years old.
               </FormDescription>
               <FormMessage />
             </FormItem>

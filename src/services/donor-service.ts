@@ -48,6 +48,9 @@ export async function addDonor(donorData: NewDonorData): Promise<Donor> {
   if (age < 18) {
     throw new Error('Donor must be at least 18 years old.');
   }
+  if (age > 50) {
+    throw new Error('Donor must be 50 years old or younger.');
+  }
 
   try {
     const donorsRef = ref(db, DONORS_PATH);
@@ -81,7 +84,7 @@ export async function addDonor(donorData: NewDonorData): Promise<Donor> {
   } catch (error: any) {
     console.error('Error adding donor:', error);
     // Re-throw specific error for age validation if it's the cause
-    if (error.message === 'Donor must be at least 18 years old.') {
+    if (error.message === 'Donor must be at least 18 years old.' || error.message === 'Donor must be 50 years old or younger.') {
         throw error;
     }
     throw new Error('Could not add donor.');
