@@ -29,9 +29,9 @@ export function Footer() {
   return (
     <footer className="border-t bg-card text-card-foreground mt-auto">
       <div className="container mx-auto px-4 py-10 md:px-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start"> {/* Changed items-center to items-start */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
           {/* Copyright */}
-          <div className="text-center md:text-left">
+          <div className="text-left">
             <p className="text-sm text-muted-foreground">
               &copy; {currentYear !== null ? currentYear : '...'} Radio Haryanvi.
             </p>
@@ -41,8 +41,8 @@ export function Footer() {
           </div>
 
           {/* Internal Links */}
-          <div className="flex flex-col items-center md:items-start gap-2">
-            <h3 className="font-semibold text-primary mb-2 text-base">Quick Links</h3> {/* Added text-base and mb-2 */}
+          <div className="flex flex-col items-start gap-2">
+            <h3 className="font-semibold text-primary mb-2 text-base">Quick Links</h3>
             {internalLinks.map((link) => (
               <Link
                 key={link.label}
@@ -56,8 +56,8 @@ export function Footer() {
           </div>
 
           {/* Social Media Links */}
-          <div className="flex flex-col items-center md:items-end gap-2">
-             <h3 className="font-semibold text-primary mb-2 text-base">Connect With Us</h3> {/* Added text-base and mb-2 */}
+          <div className="flex flex-col items-end gap-2">
+             <h3 className="font-semibold text-primary mb-2 text-base">Connect With Us</h3>
             <div className="flex space-x-4">
               {socialLinks.map((social) => (
                 <Link
@@ -81,3 +81,4 @@ export function Footer() {
     </footer>
   );
 }
+
