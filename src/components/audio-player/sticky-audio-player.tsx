@@ -21,7 +21,14 @@ const METADATA_FETCH_INTERVAL = 15000;
 
 export function StickyAudioPlayer() {
   const dispatch = useAppDispatch();
-  const { currentTrack, isPlaying, volume, playlist } = useAppSelector((state) => state.audioPlayer);
+  // Read isPlaying from Redux state directly in event handlers
+  // to ensure they have the latest value, not the one captured by their closure.
+  const isPlayingRef = useRef<boolean>(false);
+  const { currentTrack, isPlaying, volume, playlist } = useAppSelector((state) => {
+    isPlayingRef.current = state.audioPlayer.isPlaying; // Keep ref updated
+    return state.audioPlayer;
+  });
+
   const [howlInstance, setHowlInstance] = useState<Howl | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
@@ -51,7 +58,7 @@ export function StickyAudioPlayer() {
         howlInstance.unload();
         setHowlInstance(null);
       }
-      setIsLoadingAudio(false); // Reset loading state if no track
+      setIsLoadingAudio(false);
       return;
     }
 
@@ -59,12 +66,6 @@ export function StickyAudioPlayer() {
       howlInstance.unload();
     }
     
-    // Set loading true when a new track is being initialized if isPlaying is true
-    // However, setCurrentTrack currently sets isPlaying to false, so this is more for future-proofing
-    // if (isPlaying) {
-    //   setIsLoadingAudio(true);
-    // }
-
     const newHowl = new Howl({
       src: [currentTrack.url],
       html5: true,
@@ -72,18 +73,22 @@ export function StickyAudioPlayer() {
       format: ['mp3', 'aac'],
       onload: () => {
         dispatch(setDuration(newHowl.duration()));
-        // If isPlaying was true and play() was called, onplay will handle isLoadingAudio
       },
       onplay: () => {
-        if (!isPlaying) dispatch(play()); 
+        // Use ref here for the most current state
+        if (!isPlayingRef.current) dispatch(play()); 
         setIsLoadingAudio(false);
       },
-      onpause: () => {
-        if (isPlaying) dispatch(pause());
+      onpause: () => { // Handles system-initiated pauses or if howlInstance.pause() was directly called
+        if (isPlayingRef.current) dispatch(pause());
         setIsLoadingAudio(false);
       },
-      onend: () => {
-        dispatch(pause());
+      onstop: () => { // Handles howlInstance.stop()
+        if (isPlayingRef.current) dispatch(pause());
+        setIsLoadingAudio(false);
+      },
+      onend: () => { // Relevant for non-live streams, treat as stop/pause
+        if (isPlayingRef.current) dispatch(pause());
         setIsLoadingAudio(false);
       },
       onloaderror: (id, error) => {
@@ -98,7 +103,7 @@ export function StickyAudioPlayer() {
           `3. DECODE: The audio file could not be decoded.`,
           `4. SRC_NOT_SUPPORTED: The audio source is not supported or the URL is invalid.`
         );
-        dispatch(pause());
+        if (isPlayingRef.current) dispatch(pause());
         setIsLoadingAudio(false);
       },
       onplayerror: (id, error) => {
@@ -108,7 +113,7 @@ export function StickyAudioPlayer() {
           `1. AUDIO_LOCKED: Playback was blocked until a user interaction (e.g., click).`,
           `2. NETWORK/DECODE issues after loading.`
         );
-        dispatch(pause());
+        if (isPlayingRef.current) dispatch(pause());
         setIsLoadingAudio(false);
       },
     });
@@ -120,7 +125,7 @@ export function StickyAudioPlayer() {
       setHowlInstance(null);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentTrack?.url, dispatch, isClient]); 
+  }, [currentTrack?.url, dispatch, isClient]); // isPlaying is intentionally not in deps of this effect
 
   useEffect(() => {
     if (!howlInstance || !isClient) return;
@@ -130,10 +135,10 @@ export function StickyAudioPlayer() {
       howlInstance.play();
     } else if (!isPlaying && howlInstance.playing()) {
       setIsLoadingAudio(true);
-      howlInstance.pause();
+      howlInstance.stop(); // Use stop() here
     }
-    // isLoadingAudio will be set to false by Howler's onplay/onpause event handlers
-  }, [isPlaying, howlInstance, isClient]);
+    // isLoadingAudio will be set to false by Howler's onplay/onstop/onpause event handlers
+  }, [isPlaying, howlInstance, isClient]); // This effect syncs Redux isPlaying to Howler
 
   useEffect(() => {
     if (!howlInstance || !isClient) return;
@@ -184,19 +189,16 @@ export function StickyAudioPlayer() {
 
   const handlePlayPause = useCallback(() => {
     if (!currentTrack && playlist.length > 0) {
-        // setIsLoadingAudio(true); // Set loading if auto-playing first track
         dispatch(setCurrentTrack(playlist[0]));
         dispatch(play()); 
         return;
     }
 
-    // setIsLoadingAudio(true); // Set loading on user interaction
-    // The useEffect for isPlaying will handle setting isLoadingAudio before calling play/pause
     if (isPlaying) {
-      dispatch(pause());
+      dispatch(pause()); // This will lead to howlInstance.stop() via the useEffect
     } else {
       if (currentTrack) { 
-        dispatch(play());
+        dispatch(play()); // This will lead to howlInstance.play() via the useEffect
       }
     }
   }, [dispatch, isPlaying, currentTrack, playlist]);
@@ -243,3 +245,4 @@ export function StickyAudioPlayer() {
     </div>
   );
 }
+
