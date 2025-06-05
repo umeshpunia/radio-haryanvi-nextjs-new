@@ -16,10 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-// Calendar and related imports are removed as per new requirements
 import { Loader2 } from "lucide-react";
-// import { cn } from "@/lib/utils"; // No longer needed for calendar
-// import { format } from "date-fns"; // No longer needed for calendar
 import { useToast } from "@/hooks/use-toast";
 import { addSongRequest, NewRequestData } from "@/services/request-service";
 import React from "react";
@@ -30,8 +27,7 @@ const requestFormSchema = z.object({
   mobile: z.string().regex(/^\+?[1-9]\d{7,14}$/, { message: "Please enter a valid phone number (e.g., 9876543210 or +919876543210)." }),
   address: z.string().min(5, { message: "Address must be at least 5 characters." }).max(200),
   farmaish: z.string().min(5, { message: "Song request must be at least 5 characters." }).max(500),
-  // farmaishOn (Date picker) field is removed
-  preferredTimeInput: z.string().max(50, { message: "Preferred time must not exceed 50 characters." }).optional(), 
+  // preferredTimeInput field is removed
 });
 
 type RequestFormValues = z.infer<typeof requestFormSchema>;
@@ -52,20 +48,18 @@ export function RequestForm({ onSuccess, setOpen }: RequestFormProps) {
       mobile: "",
       address: "",
       farmaish: "",
-      // farmaishOn: null, // Removed
-      preferredTimeInput: "", 
     },
   });
 
   async function onSubmit(data: RequestFormValues) {
     setIsSubmitting(true);
     try {
+      // NewRequestData no longer takes 'time' from the form
       const requestData: NewRequestData = {
         fullName: data.fullName,
         mobile: data.mobile,
         address: data.address,
         farmaish: data.farmaish,
-        time: data.preferredTimeInput, // Pass the user's input for "time"
       };
       await addSongRequest(requestData);
       toast({
@@ -148,23 +142,7 @@ export function RequestForm({ onSuccess, setOpen }: RequestFormProps) {
             </FormItem>
           )}
         />
-        {/* FormField for farmaishOn (Date Picker) is removed */}
-        <FormField
-          control={form.control}
-          name="preferredTimeInput" 
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Preferred Time / Program (Optional)</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g., Evening Show, 8 PM - 10 PM" {...field} />
-              </FormControl>
-              <FormDescription>
-                Let us know if you have a preferred time or program.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {/* FormField for preferredTimeInput (Preferred Time / Program) is removed */}
         <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? (
             <>

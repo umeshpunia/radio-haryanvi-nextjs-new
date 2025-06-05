@@ -3,8 +3,7 @@ import type { SongRequest } from '@/services/request-service';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { format, formatDistanceToNowStrict } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
-import { CalendarDaysIcon, ClockIcon, Music2Icon, PhoneIcon, MapPinIcon } from 'lucide-react';
-// Badge and status icons (CheckCircle2, XCircle, History) are removed as status is no longer tracked
+import { CalendarDaysIcon, ClockIcon, Music2Icon, MapPinIcon } from 'lucide-react';
 
 interface RequestDisplayCardProps {
   request: SongRequest;
@@ -27,10 +26,7 @@ function toDateSafe(value: any): Date | null {
 }
 
 export function RequestDisplayCard({ request }: RequestDisplayCardProps) {
-  const submissionDate = toDateSafe(request.farmaishOn); // farmaishOn is now the submission timestamp
-
-  // Status badge logic is removed
-  // const getStatusBadge = (status?: SongRequest['status']) => { ... };
+  const submissionDate = toDateSafe(request.farmaishOn);
 
   return (
     <Card className="shadow-md hover:shadow-lg transition-shadow duration-200">
@@ -40,26 +36,22 @@ export function RequestDisplayCard({ request }: RequestDisplayCardProps) {
               <Music2Icon className="mr-2 h-5 w-5 flex-shrink-0" />
               <span className="truncate" title={request.farmaish}>{request.farmaish}</span>
             </CardTitle>
-            {/* Status badge removed */}
         </div>
         <CardDescription className="text-xs">
           Requested by: <span className="font-medium">{request.fullName}</span>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2 text-sm pt-0 pb-4">
-        <div className="flex items-center text-muted-foreground">
-          <PhoneIcon className="mr-2 h-4 w-4 flex-shrink-0" />
-          Mobile: <span className="text-foreground ml-1 truncate">{request.mobile}</span>
-        </div>
+        {/* Mobile number display removed */}
         <div className="flex items-center text-muted-foreground">
           <MapPinIcon className="mr-2 h-4 w-4 flex-shrink-0" />
           Address: <span className="text-foreground ml-1 truncate">{request.address}</span>
         </div>
-        {/* Display the 'time' field (user's preferred time/program) */}
+        {/* Display the 'time' field (user's preferred time/program, or "Will Be Update") */}
         {request.time && (
           <div className="flex items-center text-muted-foreground">
             <ClockIcon className="mr-2 h-4 w-4 flex-shrink-0" />
-            Time Preference: <span className="text-foreground ml-1 truncate">{request.time}</span>
+            Preferred Slot: <span className="text-foreground ml-1 truncate">{request.time}</span>
           </div>
         )}
       </CardContent>

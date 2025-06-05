@@ -2,7 +2,6 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-// import { Metadata } from 'next'; // Keep for potential static metadata if needed, but dynamic is better
 import { Music3Icon, PlusCircleIcon, ListChecksIcon, Loader2 } from 'lucide-react';
 import { RequestForm } from '@/components/requests/request-form';
 import { RequestDisplayCard } from '@/components/requests/request-display-card';
@@ -20,10 +19,6 @@ import { getSongRequests, SongRequest } from '@/services/request-service';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Metadata can be set statically here if needed, or dynamically if page becomes server component
-// export const metadata: Metadata = { ... };
-
-
 function RequestPageSkeleton() {
   return (
     <div className="space-y-4">
@@ -39,18 +34,15 @@ function CardSkeleton() {
     <div className="flex flex-col space-y-3 p-6 border rounded-lg bg-card shadow-md">
       <div className="flex justify-between items-center">
         <Skeleton className="h-7 w-3/4" />
-        <Skeleton className="h-5 w-16" />
       </div>
       <Skeleton className="h-4 w-1/2" />
       <div className="space-y-2 pt-2">
         <Skeleton className="h-4 w-full" />
         <Skeleton className="h-4 w-5/6" />
-        <Skeleton className="h-4 w-full" />
       </div>
     </div>
   );
 }
-
 
 export default function SongRequestPage() {
   const [requests, setRequests] = useState<SongRequest[]>([]);
@@ -63,10 +55,10 @@ export default function SongRequestPage() {
     setError(null);
     try {
       const fetchedRequests = await getSongRequests();
-      console.log('Fetched Requests from Service:', fetchedRequests); // Diagnostic log
+      // console.log('Fetched Requests from Service on Page:', fetchedRequests); 
       setRequests(fetchedRequests);
     } catch (err: any) {
-      console.error('Error in fetchRequests on page:', err); // Diagnostic log for errors
+      console.error('Error in fetchRequests on page:', err); 
       setError(err.message || "Failed to load requests.");
       setRequests([]);
     } finally {
@@ -79,11 +71,10 @@ export default function SongRequestPage() {
   }, [fetchRequests]);
 
   const handleFormSuccess = () => {
-    fetchRequests(); // Refresh list after new submission
-    // setIsFormOpen(false); // Form will call setOpen(false) internally
+    fetchRequests(); 
+    // setIsFormOpen(false); // Form will call setOpen(false) internally if needed
   };
   
-  // Set document title dynamically
   useEffect(() => {
     document.title = "Song Requests - Radio Haryanvi";
   }, []);
@@ -91,7 +82,7 @@ export default function SongRequestPage() {
   return (
     <>
       <MobileSubPageHeader title="Song Requests" />
-      <div className="container mx-auto px-4 py-8 md:py-0">
+      <div className="container mx-auto px-4 py-8 md:py-0 flex flex-col h-full"> {/* Use flex-col and h-full */}
         <header className="mb-8 text-center">
           <ListChecksIcon className="w-20 h-20 text-primary mx-auto mb-6" />
           <h1 className="font-headline text-4xl md:text-5xl font-bold text-primary mb-4">
@@ -113,7 +104,7 @@ export default function SongRequestPage() {
               <DialogHeader>
                 <DialogTitle>Submit Your Song Request</DialogTitle>
                 <DialogDescription>
-                  Fill out the form below with your Farmaish, and we&apos;ll do our best to play it for you!
+                  Fill out the form below with your Farmaish.
                 </DialogDescription>
               </DialogHeader>
               <RequestForm onSuccess={handleFormSuccess} setOpen={setIsFormOpen} />
@@ -121,7 +112,7 @@ export default function SongRequestPage() {
           </Dialog>
         </div>
 
-        <section className="max-w-3xl mx-auto">
+        <section className="max-w-3xl mx-auto w-full flex-grow overflow-hidden"> {/* Use flex-grow and overflow-hidden */}
           {isLoading && <RequestPageSkeleton />}
           {!isLoading && error && (
             <p className="text-center text-destructive py-10">
@@ -134,8 +125,8 @@ export default function SongRequestPage() {
             </p>
           )}
           {!isLoading && !error && requests.length > 0 && (
-            <ScrollArea className="h-[calc(100vh-20rem)] md:h-auto"> {/* Adjust height as needed */}
-              <div className="space-y-4 pr-3"> {/* Add padding for scrollbar */}
+             <ScrollArea className="h-full"> {/* Make ScrollArea take full height of its flex parent */}
+              <div className="space-y-4 pr-3 pb-4"> {/* Add padding for scrollbar and bottom */}
                 {requests.map((request) => (
                   <RequestDisplayCard key={request.id} request={request} />
                 ))}
@@ -144,17 +135,17 @@ export default function SongRequestPage() {
           )}
         </section>
 
-        <section className="mt-16 text-center max-w-2xl mx-auto">
+        <section className="mt-10 text-center max-w-2xl mx-auto pb-4"> {/* Added pb-4 */}
           <h2 className="font-headline text-2xl font-semibold mb-4 text-primary">How Requests Work</h2>
           <div className="space-y-3 text-muted-foreground text-left text-sm">
             <p>
               <strong className="text-foreground">Submission:</strong> Fill in all the required details accurately.
             </p>
             <p>
-              <strong className="text-foreground">Consideration:</strong> While we try to accommodate all requests, playing a song depends on our program schedule, song availability, and the number of requests.
+              <strong className="text-foreground">Consideration:</strong> While we try to accommodate all requests, playing a song depends on our program schedule and song availability.
             </p>
             <p>
-              <strong className="text-foreground">Tune In:</strong> Listen to Radio Haryanvi, especially during our "Farmaish" program slots, to hear if your song is played! (Check program schedule for timings).
+              <strong className="text-foreground">Tune In:</strong> Listen to Radio Haryanvi to hear if your song is played!
             </p>
             <p className="mt-4">
               Thank you for being a part of the Radio Haryanvi community!
