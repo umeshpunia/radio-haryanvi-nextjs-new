@@ -4,17 +4,13 @@
 import { useEffect } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import Image from 'next/image';
-import { Metadata } from 'next';
+// Metadata import removed
 import { CalendarDays, Loader2 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
 import { fetchPostBySlug, clearCurrentPost } from '@/lib/redux/slices/blog-slice';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Static metadata for client component
-export const metadata: Metadata = {
-  title: 'Blog Post - Radio Haryanvi',
-  description: 'Read our latest blog post on Radio Haryanvi.',
-};
+// Static metadata export removed
 
 function BlogPostSkeleton() {
   return (
