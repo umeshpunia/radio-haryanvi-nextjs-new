@@ -36,7 +36,12 @@ const requestFormSchema = z.object({
 
 type RequestFormValues = z.infer<typeof requestFormSchema>;
 
-export function RequestForm() {
+interface RequestFormProps {
+  onSuccess?: () => void; // Callback for successful submission
+  setOpen?: (open: boolean) => void; // To control dialog visibility
+}
+
+export function RequestForm({ onSuccess, setOpen }: RequestFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -69,6 +74,8 @@ export function RequestForm() {
         description: "Your song request has been sent successfully. We'll try our best to play it!",
       });
       form.reset();
+      if (onSuccess) onSuccess(); // Call the success callback (e.g., to refresh list)
+      if (setOpen) setOpen(false); // Close the dialog
     } catch (error: any) {
       toast({
         title: "Submission Failed",
@@ -82,7 +89,7 @@ export function RequestForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 bg-card p-6 sm:p-8 rounded-lg shadow-lg">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
           name="fullName"

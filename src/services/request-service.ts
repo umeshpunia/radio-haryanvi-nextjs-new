@@ -2,7 +2,7 @@
 'use server';
 
 import { dbFirestore } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, Timestamp, getDocs, query, orderBy } from 'firebase/firestore';
 
 export interface NewRequestData {
   fullName: string;
@@ -13,10 +13,22 @@ export interface NewRequestData {
   preferredTime?: string;
 }
 
-export interface FirestoreRequestData extends Omit<NewRequestData, 'farmaishOn'> {
-  farmaishOn?: Timestamp | null; // Firestore Timestamp
+// This interface represents the data structure as it is stored in Firestore
+// Note: `submittedAt` will be a Firestore Timestamp, `farmaishOn` can be Timestamp or null
+export interface FirestoreRequestData {
+  fullName: string;
+  mobile: string;
+  address: string;
+  farmaish: string;
+  farmaishOn?: Timestamp | null;
+  preferredTime?: string;
   submittedAt: Timestamp;
   status: 'pending' | 'approved' | 'played' | 'rejected';
+}
+
+// This interface represents a request object when fetched and used in the client, including its ID
+export interface SongRequest extends FirestoreRequestData {
+  id: string;
 }
 
 const REQUESTS_COLLECTION = 'requests';
@@ -25,29 +37,41 @@ export async function addSongRequest(data: NewRequestData): Promise<string> {
   try {
     const requestsCollectionRef = collection(dbFirestore, REQUESTS_COLLECTION);
     
-    const firestoreData: Omit<FirestoreRequestData, 'submittedAt' | 'id'> = {
+    // Prepare data for Firestore, converting Date to Timestamp if present
+    const firestorePayload: Omit<FirestoreRequestData, 'submittedAt' | 'status'> & { submittedAt: any; status: string } = {
       fullName: data.fullName,
       mobile: data.mobile,
       address: data.address,
       farmaish: data.farmaish,
       preferredTime: data.preferredTime || '',
+      farmaishOn: data.farmaishOn ? Timestamp.fromDate(data.farmaishOn) : null,
+      submittedAt: serverTimestamp(), // Let Firestore generate the timestamp
       status: 'pending',
     };
 
-    if (data.farmaishOn) {
-      (firestoreData as FirestoreRequestData).farmaishOn = Timestamp.fromDate(data.farmaishOn);
-    } else {
-      (firestoreData as FirestoreRequestData).farmaishOn = null;
-    }
-
-    const docRef = await addDoc(requestsCollectionRef, {
-      ...firestoreData,
-      submittedAt: serverTimestamp(),
-    });
+    const docRef = await addDoc(requestsCollectionRef, firestorePayload);
     
     return docRef.id;
   } catch (error: any) {
     console.error('Error adding song request to Firestore:', error);
     throw new Error('Could not submit your song request. Please try again later.');
+  }
+}
+
+export async function getSongRequests(): Promise<SongRequest[]> {
+  try {
+    const requestsCollectionRef = collection(dbFirestore, REQUESTS_COLLECTION);
+    const q = query(requestsCollectionRef, orderBy('submittedAt', 'desc'));
+    const querySnapshot = await getDocs(q);
+
+    const requests: SongRequest[] = [];
+    querySnapshot.forEach((doc) => {
+      requests.push({ id: doc.id, ...doc.data() } as SongRequest);
+    });
+    
+    return requests;
+  } catch (error: any) {
+    console.error('Error fetching song requests from Firestore:', error);
+    throw new Error('Could not retrieve song requests. Please try again later.');
   }
 }
