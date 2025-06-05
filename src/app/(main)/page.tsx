@@ -96,29 +96,29 @@ export default function HomePage() {
       </section>
 
       <section className="w-full max-w-4xl mb-16 p-8 bg-card rounded-lg shadow-lg text-left">
-        <div className="flex items-start gap-4">
-            <VenetianMaskIcon className="w-12 h-12 text-primary mt-1 flex-shrink-0" />
+        <div className="flex items-start gap-6">
+            <VenetianMaskIcon className="w-12 h-12 md:w-16 md:h-16 text-primary mt-1 flex-shrink-0" />
             <div>
                 <h2 className="font-headline text-3xl font-semibold mb-3">Dive into Haryanvi Culture</h2>
-                <p className="text-muted-foreground leading-relaxed mb-3">
+                <p className="text-muted-foreground leading-relaxed mb-4">
                 Haryana, a land steeped in history and tradition, boasts a vibrant cultural tapestry. Radio Haryanvi invites you to explore this rich heritage, from the soul-stirring melodies of Haryanvi folk music like Ragni and Saang, and the energetic beats of its traditional dances, to the unique customs and dialects that define the region. Discover the fascinating stories, timeless rhythms, and enduring heritage that make Haryanvi culture so distinct and beloved. We delve into everything from traditional Haryanvi attire and local festivals to the nuances of Haryanvi language and poetry, offering a window into the heart of Haryana through our dedicated Haryana radio features.
                 </p>
-                <Button variant="link" asChild className="px-0">
+                <Button variant="link" asChild className="px-0 text-base">
                     <Link href="/blog?category=culture">Explore Haryanvi Heritage &rarr;</Link>
                 </Button>
             </div>
         </div>
       </section>
 
-      <section className="w-full max-w-4xl text-left p-8 bg-card rounded-lg shadow-lg">
-         <div className="flex items-start gap-4">
-            <Music2Icon className="w-12 h-12 text-primary mt-1 flex-shrink-0" />
+      <section className="w-full max-w-4xl text-left p-8 bg-card rounded-lg shadow-lg mb-16">
+         <div className="flex items-start gap-6">
+            <Music2Icon className="w-12 h-12 md:w-16 md:h-16 text-primary mt-1 flex-shrink-0" />
             <div>
                 <h2 className="font-headline text-3xl font-semibold mb-3">Your Home for Haryanvi Music</h2>
-                <p className="text-muted-foreground leading-relaxed mb-3">
+                <p className="text-muted-foreground leading-relaxed mb-4">
                 Radio Haryanvi is passionately dedicated to preserving, promoting, and celebrating the rich musical heritage of Haryana. We strive to be the premier global platform for Haryanvi music enthusiasts, offering an authentic and immersive listening experience for all types of Haryanvi songs – from classic folk to modern hits. Through our live Haryanvi radio, comprehensive Haryanvi blog, and features on local artists, we connect you to the diverse talents and cultural expressions from the heartland of Haryana. Join our growing community, tune into the best Haryanvi music streaming service, and celebrate the indomitable spirit of Haryanvi culture with us! Radio Haryanvi is more than just Haryana radio; it's a cultural movement.
                 </p>
-                 <Button asChild>
+                 <Button asChild size="lg">
                     <Link href="/about">Learn More About Us</Link>
                 </Button>
             </div>
@@ -127,3 +127,4 @@ export default function HomePage() {
     </div>
   );
 }
+
