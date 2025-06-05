@@ -25,20 +25,22 @@ import { useToast } from "@/hooks/use-toast";
 import { addSongRequest, NewRequestData } from "@/services/request-service";
 import React from "react";
 
+// Form schema for user input
 const requestFormSchema = z.object({
   fullName: z.string().min(2, { message: "Full name must be at least 2 characters." }).max(100),
   mobile: z.string().regex(/^\+?[1-9]\d{7,14}$/, { message: "Please enter a valid phone number (e.g., 9876543210 or +919876543210)." }),
   address: z.string().min(5, { message: "Address must be at least 5 characters." }).max(200),
   farmaish: z.string().min(5, { message: "Song request must be at least 5 characters." }).max(500),
   farmaishOn: z.date().optional().nullable(),
-  preferredTime: z.string().max(50, { message: "Preferred time must not exceed 50 characters." }).optional(),
+  // This field is for the user's "Preferred Time / Program" input
+  preferredTimeInput: z.string().max(50, { message: "Preferred time must not exceed 50 characters." }).optional(), 
 });
 
 type RequestFormValues = z.infer<typeof requestFormSchema>;
 
 interface RequestFormProps {
-  onSuccess?: () => void; // Callback for successful submission
-  setOpen?: (open: boolean) => void; // To control dialog visibility
+  onSuccess?: () => void; 
+  setOpen?: (open: boolean) => void; 
 }
 
 export function RequestForm({ onSuccess, setOpen }: RequestFormProps) {
@@ -53,20 +55,21 @@ export function RequestForm({ onSuccess, setOpen }: RequestFormProps) {
       address: "",
       farmaish: "",
       farmaishOn: null,
-      preferredTime: "",
+      preferredTimeInput: "", // Matches the schema field name
     },
   });
 
   async function onSubmit(data: RequestFormValues) {
     setIsSubmitting(true);
     try {
+      // Prepare data for the service, mapping preferredTimeInput to the `time` field
       const requestData: NewRequestData = {
         fullName: data.fullName,
         mobile: data.mobile,
         address: data.address,
         farmaish: data.farmaish,
         farmaishOn: data.farmaishOn,
-        preferredTime: data.preferredTime || undefined,
+        time: data.preferredTimeInput, // Pass the user's input for "time"
       };
       await addSongRequest(requestData);
       toast({
@@ -74,8 +77,8 @@ export function RequestForm({ onSuccess, setOpen }: RequestFormProps) {
         description: "Your song request has been sent successfully. We'll try our best to play it!",
       });
       form.reset();
-      if (onSuccess) onSuccess(); // Call the success callback (e.g., to refresh list)
-      if (setOpen) setOpen(false); // Close the dialog
+      if (onSuccess) onSuccess(); 
+      if (setOpen) setOpen(false); 
     } catch (error: any) {
       toast({
         title: "Submission Failed",
@@ -166,7 +169,7 @@ export function RequestForm({ onSuccess, setOpen }: RequestFormProps) {
                       )}
                     >
                       {field.value ? (
-                        format(field.value, "PPP") // e.g., June 1, 2023
+                        format(field.value, "PPP") 
                       ) : (
                         <span>Pick a date</span>
                       )}
@@ -179,7 +182,7 @@ export function RequestForm({ onSuccess, setOpen }: RequestFormProps) {
                     mode="single"
                     selected={field.value}
                     onSelect={field.onChange}
-                    disabled={(date) => date < new Date(new Date().setHours(0,0,0,0)) } // Disable past dates
+                    disabled={(date) => date < new Date(new Date().setHours(0,0,0,0)) } 
                     initialFocus
                   />
                 </PopoverContent>
@@ -193,7 +196,7 @@ export function RequestForm({ onSuccess, setOpen }: RequestFormProps) {
         />
         <FormField
           control={form.control}
-          name="preferredTime"
+          name="preferredTimeInput" // Matches Zod schema field name
           render={({ field }) => (
             <FormItem>
               <FormLabel>Preferred Time / Program (Optional)</FormLabel>
@@ -201,7 +204,7 @@ export function RequestForm({ onSuccess, setOpen }: RequestFormProps) {
                 <Input placeholder="e.g., Evening Show, 8 PM - 10 PM" {...field} />
               </FormControl>
               <FormDescription>
-                Let us know if you have a preferred time or program.
+                Let us know if you have a preferred time or program. If blank, time will be "Will Be Update".
               </FormDescription>
               <FormMessage />
             </FormItem>

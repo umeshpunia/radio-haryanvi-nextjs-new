@@ -4,14 +4,14 @@
 import { dbFirestore } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp, Timestamp, getDocs, query, orderBy } from 'firebase/firestore';
 
-// Interface for data coming from the form
+// Interface for data coming from the form to this service
 export interface NewRequestData {
   fullName: string;
   mobile: string;
   address: string;
   farmaish: string;
-  farmaishOn?: Date | null; // Date from picker
-  preferredTime?: string; // From form's "Preferred Time / Program" input
+  farmaishOn?: Date | null; 
+  time?: string; // This will come from the form's "preferredTime" input
 }
 
 // Interface representing the data structure as it is stored in Firestore
@@ -20,11 +20,10 @@ export interface FirestoreRequestData {
   mobile: string;
   address: string;
   farmaish: string;
-  farmaishOn?: Timestamp | null; // Date from picker, stored as Timestamp
-  preferredTime?: string;       // User's specific preferred time/program from form
-  time: string;                 // For existing data; new data gets "Will Be Update"
-  submittedAt: Timestamp;
-  status: 'pending' | 'approved' | 'played' | 'rejected';
+  farmaishOn?: Timestamp | null;
+  time: string; // Default to "Will Be Update" if not provided
+  submittedAt: Timestamp; // System field
+  status: 'pending' | 'approved' | 'played' | 'rejected'; // System field
 }
 
 // Interface representing a request object when fetched and used in the client, including its ID
@@ -38,15 +37,14 @@ export async function addSongRequest(data: NewRequestData): Promise<string> {
   try {
     const requestsCollectionRef = collection(dbFirestore, REQUESTS_COLLECTION);
     
-    const firestorePayload: Omit<FirestoreRequestData, 'submittedAt' | 'status'> & { submittedAt: any; status: string } = {
+    const firestorePayload: FirestoreRequestData = {
       fullName: data.fullName,
       mobile: data.mobile,
       address: data.address,
       farmaish: data.farmaish,
       farmaishOn: data.farmaishOn ? Timestamp.fromDate(data.farmaishOn) : null,
-      preferredTime: data.preferredTime || '', // Save preferredTime from form
-      time: "Will Be Update", // Default value for the 'time' field for new requests
-      submittedAt: serverTimestamp(),
+      time: (data.time && data.time.trim() !== "") ? data.time : "Will Be Update",
+      submittedAt: serverTimestamp() as Timestamp, // Cast for immediate use, Firestore handles server value
       status: 'pending',
     };
 
@@ -62,25 +60,32 @@ export async function addSongRequest(data: NewRequestData): Promise<string> {
 export async function getSongRequests(): Promise<SongRequest[]> {
   try {
     const requestsCollectionRef = collection(dbFirestore, REQUESTS_COLLECTION);
+    // Ensure submittedAt field exists and is a timestamp for ordering
     const q = query(requestsCollectionRef, orderBy('submittedAt', 'desc'));
     const querySnapshot = await getDocs(q);
 
     const requests: SongRequest[] = [];
     querySnapshot.forEach((doc) => {
-      const data = doc.data() as FirestoreRequestData; // Cast to FirestoreRequestData
+      const data = doc.data();
+      // Basic validation to ensure essential fields for ordering and status exist
+      if (!data.submittedAt) {
+        console.warn(`Document ${doc.id} is missing 'submittedAt' field and will be skipped.`);
+        return;
+      }
       requests.push({
         id: doc.id,
-        ...data,
-        // This ensures preferredTime from form is prioritized if present,
-        // otherwise falls back to the 'time' field from older docs,
-        // or an empty string if neither exists.
-        // For new docs, data.preferredTime will be what user typed or '',
-        // and data.time will be "Will Be Update".
-        // The display card logic will need to decide how to show these.
-      } as SongRequest); // Assert as SongRequest after spreading
+        fullName: data.fullName || '',
+        mobile: data.mobile || '',
+        address: data.address || '',
+        farmaish: data.farmaish || '',
+        farmaishOn: data.farmaishOn instanceof Timestamp ? data.farmaishOn : null,
+        time: data.time || 'N/A', // Fallback for time
+        submittedAt: data.submittedAt, // Already validated
+        status: data.status || 'pending', // Fallback for status
+      } as SongRequest); 
     });
     
-    console.log('Successfully fetched requests from Firestore:', requests.length);
+    console.log('Fetched Requests from Service:', requests); 
     return requests;
   } catch (error: any) {
     console.error('Error fetching song requests from Firestore:', error);

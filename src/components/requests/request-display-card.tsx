@@ -3,7 +3,7 @@ import type { SongRequest } from '@/services/request-service';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { format, formatDistanceToNowStrict } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
-import { CalendarDaysIcon, ClockIcon, Music2Icon, UserIcon, PhoneIcon, MapPinIcon, CheckCircle2, XCircle, History, InfoIcon } from 'lucide-react';
+import { CalendarDaysIcon, ClockIcon, Music2Icon, PhoneIcon, MapPinIcon, CheckCircle2, XCircle, History } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface RequestDisplayCardProps {
@@ -45,13 +45,6 @@ export function RequestDisplayCard({ request }: RequestDisplayCardProps) {
     }
   };
 
-  // Determine what to display for time preference
-  // Prioritize `preferredTime` if it exists and isn't just an empty string.
-  // Otherwise, use `time` (which could be "Will Be Update" or an old value).
-  const timeDisplayValue = request.preferredTime && request.preferredTime.trim() !== "" 
-    ? request.preferredTime 
-    : request.time;
-
   return (
     <Card className="shadow-md hover:shadow-lg transition-shadow duration-200">
       <CardHeader className="pb-3">
@@ -81,18 +74,11 @@ export function RequestDisplayCard({ request }: RequestDisplayCardProps) {
             Preferred Date: <span className="text-foreground ml-1">{format(farmaishOnDate, 'PPP')}</span>
           </div>
         )}
-        {/* Display combined time preference */}
-        {timeDisplayValue && (
+        {/* Display the 'time' field directly */}
+        {request.time && (
           <div className="flex items-center text-muted-foreground">
             <ClockIcon className="mr-2 h-4 w-4 flex-shrink-0" />
-            Time Preference: <span className="text-foreground ml-1 truncate">{timeDisplayValue}</span>
-          </div>
-        )}
-        {/* Explicitly show 'time' field if it's "Will Be Update" and preferredTime was empty, or if you always want to show it */}
-        {request.time === "Will Be Update" && (!request.preferredTime || request.preferredTime.trim() === "") && (
-           <div className="flex items-center text-muted-foreground text-xs italic">
-            <InfoIcon className="mr-2 h-3 w-3 flex-shrink-0" />
-            Specific time: <span className="text-foreground ml-1">{request.time}</span>
+            Time Preference: <span className="text-foreground ml-1 truncate">{request.time}</span>
           </div>
         )}
       </CardContent>
