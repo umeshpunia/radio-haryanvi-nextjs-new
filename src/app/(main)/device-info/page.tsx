@@ -2,18 +2,11 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import type { Metadata } from 'next';
 import { SmartphoneIcon, HelpCircleIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-
-// Note: Client components cannot directly export 'metadata'. 
-// It would typically be in a parent server component or layout.
-// export const metadata: Metadata = {
-//   title: 'Device Information - Radio Haryanvi',
-//   description: 'View technical details about your current device, browser, and connection settings.',
-// };
+import { MobileSubPageHeader } from '@/components/layout/mobile-subpage-header';
 
 interface DeviceInfo {
   userAgent?: string;
@@ -57,7 +50,7 @@ const InfoItem: React.FC<InfoItemProps> = ({ label, value, description }) => {
               <TooltipTrigger asChild>
                 <HelpCircleIcon className="h-4 w-4 text-muted-foreground ml-2 cursor-help flex-shrink-0" />
               </TooltipTrigger>
-              <TooltipContent side="top" className="max-w-xs z-10"> {/* Ensure tooltip is above other content */}
+              <TooltipContent side="top" className="max-w-xs z-10">
                 <p>{description}</p>
               </TooltipContent>
             </Tooltip>
@@ -83,7 +76,6 @@ export default function DeviceInfoPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Set document title dynamically for client components
     document.title = 'Device Information - Radio Haryanvi';
 
     if (typeof window !== 'undefined' && typeof navigator !== 'undefined') {
@@ -158,35 +150,38 @@ export default function DeviceInfoPage() {
   );
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <header className="mb-12 text-center">
-        <SmartphoneIcon className="w-20 h-20 text-primary mx-auto mb-6" />
-        <h1 className="font-headline text-4xl md:text-5xl font-bold text-primary mb-4">
-          Device Information
-        </h1>
-        <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-          Here&apos;s some information about the device and browser you are currently using.
-        </p>
-      </header>
+    <>
+      <MobileSubPageHeader title="Device Information" />
+      <div className="container mx-auto px-4 py-8 md:py-0"> {/* Adjusted py for mobile */}
+        <header className="mb-12 text-center">
+          <SmartphoneIcon className="w-20 h-20 text-primary mx-auto mb-6" />
+          <h1 className="font-headline text-4xl md:text-5xl font-bold text-primary mb-4">
+            Device Information
+          </h1>
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+            Here&apos;s some information about the device and browser you are currently using.
+          </p>
+        </header>
 
-      <section className="max-w-3xl mx-auto">
-        <Card className="shadow-xl">
-          <CardHeader>
-            <CardTitle className="font-headline text-2xl">Client Details</CardTitle>
-            <CardDescription>
-              This information is gathered directly from your browser.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? renderSkeletons() : renderInfoItems(deviceInfo)}
-          </CardContent>
-        </Card>
-      </section>
-       <section className="mt-10 text-center max-w-2xl mx-auto">
-         <p className="text-sm text-muted-foreground">
-          Note: The accuracy and availability of this information can vary between browsers and devices. Some information might be generalized or not reported by your browser for privacy reasons. This information is not stored by Radio Haryanvi.
-        </p>
-      </section>
-    </div>
+        <section className="max-w-3xl mx-auto">
+          <Card className="shadow-xl">
+            <CardHeader>
+              <CardTitle className="font-headline text-2xl">Client Details</CardTitle>
+              <CardDescription>
+                This information is gathered directly from your browser.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? renderSkeletons() : renderInfoItems(deviceInfo)}
+            </CardContent>
+          </Card>
+        </section>
+        <section className="mt-10 text-center max-w-2xl mx-auto">
+          <p className="text-sm text-muted-foreground">
+            Note: The accuracy and availability of this information can vary between browsers and devices. Some information might be generalized or not reported by your browser for privacy reasons. This information is not stored by Radio Haryanvi.
+          </p>
+        </section>
+      </div>
+    </>
   );
 }

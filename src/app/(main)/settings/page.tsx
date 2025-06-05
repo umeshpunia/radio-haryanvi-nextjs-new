@@ -1,6 +1,8 @@
+
 import { Metadata } from 'next';
 import { SettingsIcon } from 'lucide-react';
 import { ThemeToggleButton } from '@/components/layout/theme-toggle-button';
+import { MobileSubPageHeader } from '@/components/layout/mobile-subpage-header';
 
 export const metadata: Metadata = {
   title: 'Settings - Radio Haryanvi',
@@ -9,9 +11,10 @@ export const metadata: Metadata = {
 
 export default function SettingsPage() {
   return (
-    <div className="container mx-auto px-4 py-8">
+    <>
+      <MobileSubPageHeader title="App Settings" />
       <div className="flex flex-col items-center text-center">
-        <SettingsIcon className="w-24 h-24 text-primary mb-6" />
+        <SettingsIcon className="w-24 h-24 text-primary mb-6 mt-8 md:mt-0" /> {/* Added mt-8 for mobile spacing */}
         <h1 className="font-headline text-4xl md:text-5xl font-bold mb-4">
           App Settings
         </h1>
@@ -26,6 +29,6 @@ export default function SettingsPage() {
           <ThemeToggleButton />
         </div>
       </div>
-    </div>
+    </>
   );
 }
