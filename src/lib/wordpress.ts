@@ -4,7 +4,8 @@ const WP_API_BASE_URL = 'https://blog.weareharyanvi.com/wp-json/wp/v2';
 // const WP_API_BASE_URL = 'https://your-wordpress-site.com/wp-json/wp/v2'; // Replace with your actual WordPress site URL
 
 const COMMON_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+  'Accept': 'application/json, text/plain, */*', // Explicitly state we accept JSON
 };
 
 export interface Post {
@@ -60,12 +61,12 @@ export async function fetchPostsFromApi(page = 1, categoryId?: number, perPage =
     if (!response.ok) {
       const errorBody = await response.text();
       console.error(`WordPress API error ${response.status} for URL: ${url}. Body: ${errorBody.substring(0, 500)}`);
-      // Check for bot verification in error response
       if (errorBody.toLowerCase().includes('bot verification') || errorBody.toLowerCase().includes('recaptcha')) {
         console.error(`Bot verification detected for URL: ${url}. Returning empty posts. Suggest whitelisting server IP on WordPress site.`);
         return { posts: [], totalPages: 0 };
       }
-      throw new Error(`WordPress API error: ${response.statusText} for URL: ${url}`);
+      // For other non-ok responses, return empty to prevent crashes, but log it.
+      return { posts: [], totalPages: 0 };
     }
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
@@ -75,15 +76,14 @@ export async function fetchPostsFromApi(page = 1, categoryId?: number, perPage =
         console.error(`Bot verification detected for URL: ${url}. Returning empty posts. Suggest whitelisting server IP on WordPress site.`);
         return { posts: [], totalPages: 0 };
       }
-      throw new Error(`Expected JSON response from WordPress API but received ${contentType} for URL: ${url}`);
+      // If not JSON and not bot verification, still return empty to prevent crashes.
+      return { posts: [], totalPages: 0 };
     }
     const totalPages = Number(response.headers.get('X-WP-TotalPages')) || 1;
     const posts: Post[] = await response.json();
     return { posts, totalPages };
   } catch (error) {
     console.error("Failed to fetch posts:", error);
-    // If it's not a specific "bot verification" error we already handled, rethrow or return empty.
-    // For resilience, return empty posts if any error occurs.
     return { posts: [], totalPages: 0 };
   }
 }
@@ -102,7 +102,7 @@ export async function fetchCategoriesFromApi(): Promise<Category[]> {
         console.error(`Bot verification detected for URL: ${url}. Returning empty categories. Suggest whitelisting server IP on WordPress site.`);
         return [];
       }
-      throw new Error(`WordPress API error: ${response.statusText} for URL: ${url}`);
+      return [];
     }
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
@@ -112,7 +112,7 @@ export async function fetchCategoriesFromApi(): Promise<Category[]> {
         console.error(`Bot verification detected for URL: ${url}. Returning empty categories. Suggest whitelisting server IP on WordPress site.`);
         return [];
       }
-      throw new Error(`Expected JSON response from WordPress API but received ${contentType} for URL: ${url}`);
+      return [];
     }
     const categories: Category[] = await response.json();
     return categories.filter(cat => cat.count > 0); // Ensure categories have posts
@@ -130,13 +130,14 @@ export async function fetchPostBySlugApi(slug: string): Promise<Post | null> {
       next: { revalidate: 3600 }
     });
     if (!response.ok) {
-      const errorBody = await response.text(); // Check body even for non-ok responses
+      const errorBody = await response.text(); 
       console.error(`WordPress API error ${response.status} for URL: ${url}. Slug: ${slug}. Body: ${errorBody.substring(0, 500)}`);
       if (errorBody.toLowerCase().includes('bot verification') || errorBody.toLowerCase().includes('recaptcha')) {
         console.error(`Bot verification detected for slug '${slug}' (URL: ${url}). Cannot fetch post. Suggest whitelisting server IP on WordPress site.`);
         return null;
       }
-      throw new Error(`WordPress API error: ${response.statusText} fetching slug '${slug}' from URL: ${url}`);
+      // For other non-ok responses for a single post, return null.
+      return null;
     }
 
     const contentType = response.headers.get("content-type");
@@ -146,22 +147,22 @@ export async function fetchPostBySlugApi(slug: string): Promise<Post | null> {
 
       if (errorBody.toLowerCase().includes('bot verification') || errorBody.toLowerCase().includes('recaptcha')) {
         console.error(`Bot verification detected for slug '${slug}' (URL: ${url}). Cannot fetch post. Suggest whitelisting server IP on WordPress site.`);
-        return null; // Return null to allow graceful degradation
+        return null; 
       }
-
-      // If status is OK but content is HTML, it might be a theme's 404 page for a non-existent slug
+      
       if (response.ok && contentType.includes("text/html")) {
         console.warn(`Slug '${slug}' likely not found or WordPress returned HTML instead of JSON (URL: ${url}). Check if the post with this slug exists and is published.`);
         return null;
       }
-      throw new Error(`Expected JSON response from WordPress API for slug '${slug}' but received ${contentType} from URL: ${url}`);
+      // If not JSON, and not bot verification, and not a 200 OK HTML page (potential 404), return null.
+      return null;
     }
 
     const posts: Post[] = await response.json();
     return posts.length > 0 ? posts[0] : null;
   } catch (error) {
     console.error(`Failed to fetch post by slug ${slug}:`, error);
-    return null; // Return null on any other error during fetch
+    return null; 
   }
 }
 
@@ -179,7 +180,7 @@ export async function fetchAuthorApi(id: number): Promise<Author | null> {
         console.error(`Bot verification detected when fetching author ${id}. Returning null. Suggest whitelisting server IP.`);
         return null;
       }
-      throw new Error(`WordPress API error for author ${id}: ${response.statusText}`);
+      return null;
     }
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
@@ -189,7 +190,7 @@ export async function fetchAuthorApi(id: number): Promise<Author | null> {
         console.error(`Bot verification detected when fetching author ${id}. Returning null. Suggest whitelisting server IP.`);
         return null;
       }
-      throw new Error(`Expected JSON response from WordPress API for author ${id} but received ${contentType}`);
+      return null;
     }
     const author: Author = await response.json();
     return author;
@@ -213,7 +214,7 @@ export async function fetchCategoryBySlugFromApi(slug: string): Promise<Category
         console.error(`Bot verification detected for URL: ${url}. Returning null. Suggest whitelisting server IP.`);
         return null;
       }
-      throw new Error(`WordPress API error: ${response.statusText} for URL: ${url}`);
+      return null;
     }
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
@@ -223,7 +224,7 @@ export async function fetchCategoryBySlugFromApi(slug: string): Promise<Category
         console.error(`Bot verification detected for URL: ${url}. Returning null. Suggest whitelisting server IP.`);
         return null;
       }
-      throw new Error(`Expected JSON response from WordPress API but received ${contentType} for URL: ${url}`);
+      return null;
     }
     const categories: Category[] = await response.json();
     if (categories.length > 0) {
