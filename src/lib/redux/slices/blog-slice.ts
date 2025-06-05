@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { fetchPostsFromApi, fetchCategoriesFromApi, fetchPostBySlugApi } from '@/lib/wordpress';
 import type { Post, Category } from '@/lib/wordpress';
+import type { RootState } from '../store';
 
 
 interface BlogState {
@@ -49,10 +50,20 @@ export const fetchCategories = createAsyncThunk(
   }
 );
 
-export const fetchPostBySlug = createAsyncThunk(
+export const fetchPostBySlug = createAsyncThunk<
+  Post | null, // Return type
+  string, // Argument type (slug)
+  { state: RootState; rejectValue: string } // ThunkAPI config
+>(
   'blog/fetchPostBySlug',
-  async (slug: string, { rejectWithValue }) => {
+  async (slug: string, { getState, rejectWithValue }) => {
     try {
+      // Check if the post already exists in the state.posts array
+      const existingPost = getState().blog.posts.find(post => post.slug === slug);
+      if (existingPost) {
+        return existingPost;
+      }
+      // If not found, fetch from API
       const post = await fetchPostBySlugApi(slug);
       return post;
     } catch (error: any) {
@@ -74,6 +85,8 @@ const blogSlice = createSlice({
     },
     clearCurrentPost: (state) => {
       state.currentPost = null;
+      state.status = 'idle';
+      state.error = null;
     }
   },
   extraReducers: (builder) => {
@@ -83,7 +96,12 @@ const blogSlice = createSlice({
       })
       .addCase(fetchPosts.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.posts = action.payload.posts;
+        // Merge new posts with existing ones, avoiding duplicates,
+        // useful if we implement "load more" later. For now, simple replacement is also fine.
+        const newPosts = action.payload.posts.filter(
+          p => !state.posts.some(existing => existing.id === p.id)
+        );
+        state.posts = [...state.posts, ...newPosts]; // Or simply state.posts = action.payload.posts if replacing
         state.totalPages = action.payload.totalPages;
       })
       .addCase(fetchPosts.rejected, (state, action) => {
@@ -98,15 +116,21 @@ const blogSlice = createSlice({
       })
       .addCase(fetchPostBySlug.pending, (state) => {
         state.status = 'loading';
-        state.currentPost = null;
+        state.currentPost = null; // Clear previous post
+        state.error = null;
       })
-      .addCase(fetchPostBySlug.fulfilled, (state, action) => {
+      .addCase(fetchPostBySlug.fulfilled, (state, action: PayloadAction<Post | null>) => {
         state.status = 'succeeded';
         state.currentPost = action.payload;
+        // If the fetched post is new and not in the main list, add it
+        if (action.payload && !state.posts.some(p => p.id === action.payload!.id)) {
+          state.posts.push(action.payload);
+        }
       })
       .addCase(fetchPostBySlug.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload as string;
+        state.currentPost = null;
       });
   },
 });

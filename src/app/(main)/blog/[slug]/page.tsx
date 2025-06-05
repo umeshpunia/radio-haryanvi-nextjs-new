@@ -1,59 +1,74 @@
 
-import { fetchPostBySlugApi, Post } from '@/lib/wordpress';
-import { notFound } from 'next/navigation';
-import Image from 'next/image';
-import { Metadata, ResolvingMetadata } from 'next';
-import { CalendarDays } from 'lucide-react';
+"use client";
 
-type Props = {
-  params: { slug: string };
+import { useEffect } from 'react';
+import { useParams, notFound } from 'next/navigation';
+import Image from 'next/image';
+import { Metadata } from 'next';
+import { CalendarDays, Loader2 } from 'lucide-react';
+import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
+import { fetchPostBySlug, clearCurrentPost } from '@/lib/redux/slices/blog-slice';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Static metadata for client component
+export const metadata: Metadata = {
+  title: 'Blog Post - Radio Haryanvi',
+  description: 'Read our latest blog post on Radio Haryanvi.',
 };
 
-async function getPostData(slug: string): Promise<{ post: Post | null }> {
-  const post = await fetchPostBySlugApi(slug);
-  if (!post) {
-    return { post: null };
-  }
-  return { post };
+function BlogPostSkeleton() {
+  return (
+    <article className="container mx-auto px-4 py-8 max-w-3xl">
+      <header className="mb-8">
+        <Skeleton className="h-12 w-3/4 mb-4" />
+        <div className="flex items-center text-sm text-muted-foreground space-x-4">
+          <Skeleton className="h-5 w-24" />
+        </div>
+      </header>
+      <Skeleton className="relative w-full aspect-video rounded-lg overflow-hidden mb-8 shadow-lg" />
+      <div className="space-y-4">
+        <Skeleton className="h-6 w-full" />
+        <Skeleton className="h-6 w-full" />
+        <Skeleton className="h-6 w-5/6" />
+        <Skeleton className="h-6 w-full" />
+        <Skeleton className="h-6 w-2/3" />
+      </div>
+    </article>
+  );
 }
 
-export async function generateMetadata({ params }: Props, parent: ResolvingMetadata): Promise<Metadata> {
-  const { post } = await getPostData(params.slug);
+export default function BlogPostPage() {
+  const params = useParams();
+  const slug = typeof params.slug === 'string' ? params.slug : '';
+  const dispatch = useAppDispatch();
+  const { currentPost: post, status, error } = useAppSelector((state) => state.blog);
 
-  if (!post) {
-    return {
-      title: 'Post Not Found',
+  useEffect(() => {
+    if (slug) {
+      dispatch(fetchPostBySlug(slug));
+    }
+    // Cleanup function to clear the current post when the component unmounts or slug changes
+    return () => {
+      dispatch(clearCurrentPost());
     };
+  }, [dispatch, slug]);
+
+  useEffect(() => {
+    // If the status is succeeded and the post is null (meaning API returned null or post not found)
+    // or if the status is failed, trigger notFound.
+    if ((status === 'succeeded' && !post && slug) || status === 'failed') {
+      notFound();
+    }
+  }, [status, post, error, slug]);
+
+  if (status === 'loading' || (status === 'idle' && !post)) {
+    return <BlogPostSkeleton />;
   }
 
-  const previousImages = (await parent).openGraph?.images || [];
-  const featuredImageUrl = post._embedded?.['wp:featuredmedia']?.[0]?.source_url;
-
-  return {
-    title: `${post.title.rendered} - Radio Haryanvi Blog`,
-    description: post.excerpt.rendered.replace(/<[^>]+>/g, '').substring(0, 160), // Plain text excerpt
-    openGraph: {
-      title: post.title.rendered,
-      description: post.excerpt.rendered.replace(/<[^>]+>/g, '').substring(0, 160),
-      type: 'article',
-      publishedTime: post.date,
-      // authors: post._embedded?.author?.[0]?.name ? [post._embedded.author[0].name] : [], // Author removed
-      images: featuredImageUrl ? [featuredImageUrl, ...previousImages] : previousImages,
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: post.title.rendered,
-      description: post.excerpt.rendered.replace(/<[^>]+>/g, '').substring(0, 160),
-      images: featuredImageUrl ? [featuredImageUrl] : undefined,
-    },
-  };
-}
-
-export default async function BlogPostPage({ params }: Props) {
-  const { post } = await getPostData(params.slug);
-
   if (!post) {
-    notFound();
+    // This case should ideally be caught by the useEffect above to trigger notFound,
+    // but as a fallback or if notFound hasn't redirected yet:
+    return <BlogPostSkeleton />; // Or a more specific "Post not found" message before notFound kicks in
   }
 
   const featuredImageUrl = post._embedded?.['wp:featuredmedia']?.[0]?.source_url;
@@ -75,7 +90,6 @@ export default async function BlogPostPage({ params }: Props) {
             <CalendarDays className="h-4 w-4" />
             <span>{postDate}</span>
           </div>
-          {/* Author display removed */}
         </div>
       </header>
 
@@ -84,8 +98,8 @@ export default async function BlogPostPage({ params }: Props) {
           <Image
             src={featuredImageUrl}
             alt={post.title.rendered}
-            layout="fill"
-            objectFit="cover"
+            fill // Changed from layout="fill" and objectFit="cover"
+            style={{ objectFit: 'cover' }} // Replaced objectFit prop with style
             priority
             data-ai-hint="blog post image"
           />
@@ -100,11 +114,5 @@ export default async function BlogPostPage({ params }: Props) {
   );
 }
 
-// Enable ISR for blog posts if desired, or keep fully dynamic
-// export async function generateStaticParams() {
-//   const { posts } = await fetchPostsFromApi(1, undefined, 100); // Fetch a number of posts to pre-render
-//   return posts.map((post) => ({
-//     slug: post.slug,
-//   }));
-// }
-// export const revalidate = 600; // Revalidate every 10 minutes
+// Ensure dynamic behavior for this page as it relies on client-side fetching based on slug
+export const dynamic = 'force-dynamic';
