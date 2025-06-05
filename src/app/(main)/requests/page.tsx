@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Music3Icon, PlusCircleIcon, ListChecksIcon, Loader2 } from 'lucide-react';
+import { PlusCircleIcon, ListChecksIcon } from 'lucide-react';
 import { RequestForm } from '@/components/requests/request-form';
 import { RequestDisplayCard } from '@/components/requests/request-display-card';
 import { MobileSubPageHeader } from '@/components/layout/mobile-subpage-header';
@@ -45,7 +45,6 @@ function CardSkeleton() {
   );
 }
 
-// Helper function for safe date conversion, similar to the one in RequestDisplayCard
 function toDateSafeForFiltering(value: any): Date | null {
   if (!value) return null;
   if (value instanceof Timestamp) return value.toDate();
@@ -74,24 +73,26 @@ export default function SongRequestPage() {
     setError(null);
     try {
       const fetchedRequests = await getSongRequests();
+      console.log("Fetched Requests from Service:", fetchedRequests); // Diagnostic log
       
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      sevenDaysAgo.setHours(0, 0, 0, 0); // Set to the beginning of the day for comparison
+      sevenDaysAgo.setHours(0, 0, 0, 0); 
 
       const filteredRequests = fetchedRequests.filter(request => {
         const requestDate = toDateSafeForFiltering(request.farmaishOn);
         if (!requestDate) {
-          // If date can't be parsed, or is missing, don't show it (or decide on other behavior)
+          console.warn(`Request ${request.id} skipped due to invalid farmaishOn date:`, request.farmaishOn);
           return false; 
         }
-        // Compare only the date part, not time
         const requestDateOnly = new Date(requestDate.getFullYear(), requestDate.getMonth(), requestDate.getDate());
         return requestDateOnly.getTime() >= sevenDaysAgo.getTime();
       });
-
+      
+      console.log("Filtered Requests (last 7 days):", filteredRequests);
       setRequests(filteredRequests);
     } catch (err: any) {
+      console.error('Error in fetchRequests on page:', err);
       setError(err.message || "Failed to load requests.");
       setRequests([]);
     } finally {
@@ -105,7 +106,7 @@ export default function SongRequestPage() {
 
   const handleFormSuccess = () => {
     fetchRequests();
-    // setIsFormOpen(false); // Form calls setOpen(false) internally if needed
+    // setIsFormOpen(false); // Form calls setOpen(false) internally
   };
   
   useEffect(() => {
@@ -123,7 +124,7 @@ export default function SongRequestPage() {
   return (
     <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
       <MobileSubPageHeader title="Song Requests" actionButton={addRequestIconTrigger} />
-      <div className="container mx-auto px-4 py-8 md:py-0 flex flex-col h-[calc(100vh-3.5rem-1px)] md:h-auto"> {/* Adjust height for mobile header */}
+      <div className="container mx-auto px-4 py-8 md:py-0 flex flex-col h-[calc(100vh-3.5rem-1px)] md:h-auto">
         <header className="mb-8 text-center pt-4 md:pt-0">
           <ListChecksIcon className="w-20 h-20 text-primary mx-auto mb-6" />
           <h1 className="font-headline text-4xl md:text-5xl font-bold text-primary mb-4">
@@ -142,7 +143,7 @@ export default function SongRequestPage() {
           </DialogTrigger>
         </div>
 
-        <section className="max-w-3xl mx-auto w-full flex-grow overflow-hidden">
+        <section className="max-w-3xl mx-auto w-full">
           {isLoading && <RequestPageSkeleton />}
           {!isLoading && error && (
             <p className="text-center text-destructive py-10">
@@ -155,7 +156,7 @@ export default function SongRequestPage() {
             </p>
           )}
           {!isLoading && !error && requests.length > 0 && (
-             <ScrollArea className="h-full"> 
+             <ScrollArea> 
               <div className="space-y-4 pr-3 pb-4">
                 {requests.map((request) => (
                   <RequestDisplayCard key={request.id} request={request} />
@@ -165,7 +166,7 @@ export default function SongRequestPage() {
           )}
         </section>
 
-        <section className="mt-auto text-center max-w-2xl mx-auto py-4 md:pb-4">
+        <section className="text-center max-w-2xl mx-auto py-4 md:pb-4 mt-8"> {/* Removed mt-auto, added mt-8 */}
           <h2 className="font-headline text-2xl font-semibold mb-4 text-primary">How Requests Work</h2>
           <div className="space-y-3 text-muted-foreground text-left text-sm">
             <p>
