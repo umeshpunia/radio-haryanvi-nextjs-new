@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Metadata } from 'next'; // Keep for potential static metadata if needed, but dynamic is better
+// import { Metadata } from 'next'; // Keep for potential static metadata if needed, but dynamic is better
 import { Music3Icon, PlusCircleIcon, ListChecksIcon, Loader2 } from 'lucide-react';
 import { RequestForm } from '@/components/requests/request-form';
 import { RequestDisplayCard } from '@/components/requests/request-display-card';
@@ -63,8 +63,10 @@ export default function SongRequestPage() {
     setError(null);
     try {
       const fetchedRequests = await getSongRequests();
+      console.log('Fetched Requests from Service:', fetchedRequests); // Diagnostic log
       setRequests(fetchedRequests);
     } catch (err: any) {
+      console.error('Error in fetchRequests on page:', err); // Diagnostic log for errors
       setError(err.message || "Failed to load requests.");
       setRequests([]);
     } finally {

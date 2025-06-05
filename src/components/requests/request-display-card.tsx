@@ -10,9 +10,41 @@ interface RequestDisplayCardProps {
   request: SongRequest;
 }
 
+// Helper function to safely convert various timestamp formats to a Date object
+function toDateSafe(value: any): Date | null {
+  if (!value) return null;
+
+  if (value instanceof Timestamp) {
+    return value.toDate();
+  }
+  // Handle cases where Timestamp might be a plain object (e.g., { seconds: ..., nanoseconds: ... })
+  if (typeof value === 'object' && typeof value.seconds === 'number' && typeof value.nanoseconds === 'number') {
+    try {
+      return new Timestamp(value.seconds, value.nanoseconds).toDate();
+    } catch (e) {
+      console.error("Error converting plain object to Timestamp:", e, value);
+      return null;
+    }
+  }
+  // Handle JS Date object
+  if (value instanceof Date) {
+    return value;
+  }
+  // Handle string or number (milliseconds)
+  if (typeof value === 'string' || typeof value === 'number') {
+    const d = new Date(value);
+    if (!isNaN(d.getTime())) {
+      return d;
+    }
+  }
+  console.warn("Could not convert value to Date:", value);
+  return null;
+}
+
+
 export function RequestDisplayCard({ request }: RequestDisplayCardProps) {
-  const submittedAtDate = request.submittedAt instanceof Timestamp ? request.submittedAt.toDate() : null;
-  const farmaishOnDate = request.farmaishOn instanceof Timestamp ? request.farmaishOn.toDate() : (request.farmaishOn || null);
+  const submittedAtDate = toDateSafe(request.submittedAt);
+  const farmaishOnDate = toDateSafe(request.farmaishOn);
 
   const getStatusBadge = (status: SongRequest['status']) => {
     switch (status) {
