@@ -43,7 +43,7 @@ export function DonorCard({ donor }: DonorCardProps) {
       <CardFooter>
         <div className="text-xs text-muted-foreground flex items-center">
           <CalendarDaysIcon className="h-3 w-3 mr-1" />
-          Registered on: {donor.timestamp ? new Date(donor.timestamp).toLocaleDateString() : 'N/A'}
+          Registered on: {new Date(!donor.getTime?donor.timestamp : donor.getTime).toLocaleDateString() }
         </div>
       </CardFooter>
     </Card>

@@ -213,7 +213,7 @@ export function StickyAudioPlayer() {
   return (
     <div className={cn(
       "fixed left-0 right-0 z-40 border-t bg-background/95 p-3 backdrop-blur supports-[backdrop-filter]:bg-background/60",
-      "bottom-[calc(4.5rem+env(safe-area-inset-bottom)+0.5rem)] md:bottom-2" 
+      "bottom-[calc(4.5rem+env(safe-area-inset-bottom))] md:bottom-2" 
     )}>
       <div className="container mx-auto flex items-center justify-between">
         <div className="flex items-center space-x-3 flex-grow min-w-0"> 
