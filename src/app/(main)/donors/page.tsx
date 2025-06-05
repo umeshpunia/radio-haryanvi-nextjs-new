@@ -120,7 +120,7 @@ export default function DonorsPage() {
   const filteredDonors = useMemo(() => {
     return donors.filter((donor) => {
       const bloodGroupMatch =
-        bloodGroupFilter === "All" || donor.bloodGroup === bloodGroupFilter;
+        bloodGroupFilter === "All" || donor.b_group === bloodGroupFilter;
       const locationMatch =
         locationFilter === "" ||
         donor.address.toLowerCase().includes(locationFilter.toLowerCase()) ||

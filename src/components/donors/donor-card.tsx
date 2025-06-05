@@ -18,7 +18,7 @@ export function DonorCard({ donor }: DonorCardProps) {
         </div>
         <CardDescription className="flex items-center">
             <HeartPulseIcon className="h-4 w-4 mr-2 text-red-500" />
-            B.Group: <span className="font-semibold ml-1">{donor.bloodGroup}</span>
+            B.Group: <span className="font-semibold ml-1">{donor.b_group}</span>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3 flex-grow">

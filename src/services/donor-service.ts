@@ -10,22 +10,24 @@ export interface Donor {
   mobile: string;
   dob: string; // YYYY-MM-DD
   age: number;
-  bloodGroup: string; // e.g., "A+", "B-", "O+"
+  b_group: string; // e.g., "A+", "B-", "O+"
   address: string;
   area: string;
   description?: string;
   active: boolean;
-  timestamp: number; // serverTimestamp will resolve to a number
+  timestamp: number;
+  getTime?: number;
 }
 
 export interface NewDonorData {
   name: string;
   mobile: string;
   dob: string; // YYYY-MM-DD
-  bloodGroup: string;
+  b_group: string;
   address: string;
   area: string;
   description?: string;
+  getTime?: number; // Changed from string to number
 }
 
 const DONORS_PATH = 'donors';
@@ -94,8 +96,9 @@ export async function addDonor(donorData: NewDonorData): Promise<Donor> {
       name: formattedName, // Return the formatted name
       age,
       active: true,
-      timestamp: currentTimestamp // Return current client time for immediate display
+      timestamp: currentTimestamp, // Return current client time for immediate display
                                 // getDonors() will fetch the server-set timestamp.
+      // If donorData included getTime (as number), it will be part of the returned object.
     };
   } catch (error: any) {
     console.error('Error adding donor:', error);
