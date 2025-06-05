@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -43,6 +44,8 @@ export default function BlogPage() {
     );
   }
 
+  const displayedCategories = categories.filter(category => category.slug !== 'artists');
+
   return (
     <div className="container mx-auto px-4 py-8">
       <header className="mb-8 text-center">
@@ -64,7 +67,7 @@ export default function BlogPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
-              {categories.map((category) => (
+              {displayedCategories.map((category) => (
                 <SelectItem key={category.id} value={category.id.toString()}>
                   {category.name} ({category.count})
                 </SelectItem>
