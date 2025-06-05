@@ -15,10 +15,9 @@ import { Button } from '@/components/ui/button';
 import { PlayIcon, PauseIcon, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Howl } from 'howler';
+import { useAppSettings } from '@/contexts/app-settings-context';
 
 const LIVE_RADIO_TRACK_ID = 'liveRadioHaryanvi';
-// IMPORTANT: This URL points to your Icecast JSON status endpoint.
-const METADATA_URL = 'http://listen.weareharyanvi.com/status-json.xsl'; 
 const METADATA_FETCH_INTERVAL = 15000; // 15 seconds
 
 export function StickyAudioPlayer() {
@@ -28,6 +27,13 @@ export function StickyAudioPlayer() {
     isPlayingRef.current = state.audioPlayer.isPlaying;
     return state.audioPlayer;
   });
+
+  const { streamingUrl: firestoreStreamingUrl, metaDataUrl: firestoreMetaDataUrl } = useAppSettings();
+
+  // Define default fallbacks directly
+  const LIVE_RADIO_URL = firestoreStreamingUrl || 'https://listen.weareharyanvi.com/listen';
+  const METADATA_URL_CONTEXT = firestoreMetaDataUrl || 'http://listen.weareharyanvi.com/status-json.xsl';
+
 
   const [howlInstance, setHowlInstance] = useState<Howl | null>(null);
   const [isClient, setIsClient] = useState(false);
@@ -39,18 +45,18 @@ export function StickyAudioPlayer() {
   }, []);
 
   useEffect(() => {
-    if (isClient && !currentTrack && playlist.length === 0) {
+    if (isClient && !currentTrack && playlist.length === 0 && LIVE_RADIO_URL) {
       dispatch(setCurrentTrack({
         id: LIVE_RADIO_TRACK_ID,
         title: 'Radio Haryanvi Live',
         artist: 'Live Stream',
-        url: 'https://listen.weareharyanvi.com/listen', // This is the audio stream URL
+        url: LIVE_RADIO_URL,
         coverArt: 'https://placehold.co/100x100.png',
         currentSongTitle: null,
         currentSongArtist: null,
       }));
     }
-  }, [dispatch, currentTrack, playlist, isClient]);
+  }, [dispatch, currentTrack, playlist, isClient, LIVE_RADIO_URL]);
 
   useEffect(() => {
     if (!isClient || !currentTrack) {
@@ -64,6 +70,14 @@ export function StickyAudioPlayer() {
 
     if (howlInstance) {
       howlInstance.unload();
+    }
+    
+    // Only create Howl instance if URL is valid
+    if (!currentTrack.url) {
+        console.warn("No stream URL available for Howl instance.");
+        setIsLoadingAudio(false);
+        if (isPlayingRef.current) dispatch(pause()); // Ensure player state is paused
+        return;
     }
 
     const newHowl = new Howl({
@@ -119,14 +133,14 @@ export function StickyAudioPlayer() {
   useEffect(() => {
     if (!howlInstance || !isClient) return;
 
-    if (isPlaying && !howlInstance.playing()) {
+    if (isPlaying && !howlInstance.playing() && currentTrack?.url) {
       setIsLoadingAudio(true);
       howlInstance.play();
     } else if (!isPlaying && howlInstance.playing()) {
       setIsLoadingAudio(true);
       howlInstance.stop(); 
     }
-  }, [isPlaying, howlInstance, isClient]);
+  }, [isPlaying, howlInstance, isClient, currentTrack?.url]);
 
   useEffect(() => {
     if (!howlInstance || !isClient) return;
@@ -134,14 +148,13 @@ export function StickyAudioPlayer() {
   }, [volume, howlInstance, isClient]);
 
   const fetchMetadata = useCallback(async () => {
-    if (!currentTrack || currentTrack.id !== LIVE_RADIO_TRACK_ID || !METADATA_URL) {
+    if (!currentTrack || currentTrack.id !== LIVE_RADIO_TRACK_ID || !METADATA_URL_CONTEXT) {
       return;
     }
     try {
-      // Add cache buster to METADATA_URL to prevent stale responses
-      const urlWithCacheBuster = METADATA_URL.includes('?') 
-        ? `${METADATA_URL}&cb=${new Date().getTime()}`
-        : `${METADATA_URL}?cb=${new Date().getTime()}`;
+      const urlWithCacheBuster = METADATA_URL_CONTEXT.includes('?') 
+        ? `${METADATA_URL_CONTEXT}&cb=${new Date().getTime()}`
+        : `${METADATA_URL_CONTEXT}?cb=${new Date().getTime()}`;
 
       const response = await fetch(urlWithCacheBuster);
       if (!response.ok) {
@@ -180,14 +193,14 @@ export function StickyAudioPlayer() {
       dispatch(updateCurrentTrackMetadata({ title: songTitle, artist: songArtist }));
 
     } catch (error) {
-      console.warn(`Error fetching or parsing stream metadata from ${METADATA_URL}:`, error);
+      console.warn(`Error fetching or parsing stream metadata from ${METADATA_URL_CONTEXT}:`, error);
       dispatch(updateCurrentTrackMetadata({ title: null, artist: null }));
     }
-  }, [currentTrack, dispatch]);
+  }, [currentTrack, dispatch, METADATA_URL_CONTEXT]);
 
 
   useEffect(() => {
-    if (isClient && isPlaying && currentTrack && currentTrack.id === LIVE_RADIO_TRACK_ID) {
+    if (isClient && isPlaying && currentTrack && currentTrack.id === LIVE_RADIO_TRACK_ID && METADATA_URL_CONTEXT) {
       fetchMetadata(); 
       if (metadataIntervalRef.current) clearInterval(metadataIntervalRef.current);
       metadataIntervalRef.current = setInterval(fetchMetadata, METADATA_FETCH_INTERVAL);
@@ -204,7 +217,7 @@ export function StickyAudioPlayer() {
         metadataIntervalRef.current = null;
       }
     };
-  }, [isClient, isPlaying, currentTrack, dispatch, fetchMetadata]);
+  }, [isClient, isPlaying, currentTrack, fetchMetadata, METADATA_URL_CONTEXT]);
 
 
   const handlePlayPause = useCallback(() => {
@@ -213,18 +226,63 @@ export function StickyAudioPlayer() {
         dispatch(play()); 
         return;
     }
+     if (!currentTrack && !LIVE_RADIO_URL) {
+        console.warn("No live radio URL configured to play.");
+        return;
+    }
+     if (!currentTrack && LIVE_RADIO_URL) { // If no current track but live URL exists, set it up
+        dispatch(setCurrentTrack({
+            id: LIVE_RADIO_TRACK_ID,
+            title: 'Radio Haryanvi Live',
+            artist: 'Live Stream',
+            url: LIVE_RADIO_URL,
+            coverArt: 'https://placehold.co/100x100.png',
+        }));
+        // dispatch(play()); // Play will be handled by useEffect that watches isPlaying
+        // Let the useEffect for Howl instance creation run, then the useEffect for play/pause will trigger play
+    }
+
 
     if (isPlaying) {
       dispatch(pause());
     } else {
-      if (currentTrack) {
+      if (currentTrack) { // currentTrack must exist to play
         dispatch(play());
       }
     }
-  }, [dispatch, isPlaying, currentTrack, playlist]);
+  }, [dispatch, isPlaying, currentTrack, playlist, LIVE_RADIO_URL]);
 
   if (!isClient || !currentTrack) {
-    return null;
+    // Render a disabled player or a message if no stream URL is configured
+    if (!LIVE_RADIO_URL && !playlist.length) {
+        return (
+             <div className={cn(
+                "fixed left-0 right-0 z-40 border-t bg-background/95 p-3 backdrop-blur supports-[backdrop-filter]:bg-background/60",
+                "bottom-[calc(4.5rem+env(safe-area-inset-bottom))] md:bottom-2"
+            )}>
+                <div className="container mx-auto flex items-center justify-between">
+                    <div className="flex items-center space-x-3 flex-grow min-w-0">
+                        <Image
+                            src={"https://placehold.co/40x40.png"}
+                            alt={"No stream available"}
+                            width={40} height={40}
+                            className="rounded flex-shrink-0"
+                            data-ai-hint="radio placeholder"
+                        />
+                        <div className="min-w-0">
+                            <p className="text-sm font-semibold truncate">Stream Unavailable</p>
+                            <p className="text-xs text-muted-foreground truncate">Configure in settings</p>
+                        </div>
+                    </div>
+                    <Button variant="ghost" size="icon" className="w-10 h-10" disabled>
+                        <PlayIcon className="h-6 w-6 opacity-50" />
+                    </Button>
+                </div>
+            </div>
+        );
+    }
+    // If URLs are configured but currentTrack is not yet set (initial load), show loading or return null
+    return null; 
   }
 
   const displayTitle = currentTrack.currentSongTitle || currentTrack.title;
@@ -251,7 +309,7 @@ export function StickyAudioPlayer() {
         </div>
 
         <div className="flex items-center space-x-1 md:space-x-2 flex-shrink-0">
-            <Button variant="ghost" size="icon" onClick={handlePlayPause} className="w-10 h-10" disabled={isLoadingAudio}>
+            <Button variant="ghost" size="icon" onClick={handlePlayPause} className="w-10 h-10" disabled={isLoadingAudio || !currentTrack.url}>
               {isLoadingAudio ? (
                 <Loader2 className="h-6 w-6 animate-spin" />
               ) : isPlaying ? (
@@ -265,4 +323,3 @@ export function StickyAudioPlayer() {
     </div>
   );
 }
-

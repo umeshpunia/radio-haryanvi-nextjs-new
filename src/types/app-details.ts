@@ -5,4 +5,6 @@ export interface AppDetails {
   message: string;
   showMessage: boolean;
   version: string;
+  streamingUrl?: string;
+  metaDataUrl?: string;
 }

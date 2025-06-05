@@ -8,21 +8,35 @@ import type { AppDetails } from '@/types/app-details';
 const APP_DETAILS_COLLECTION = 'rhAppDetails';
 const APP_DETAILS_DOC_ID = 'details';
 
+const FALLBACK_STREAMING_URL = 'https://listen.weareharyanvi.com/listen';
+const FALLBACK_METADATA_URL = 'http://listen.weareharyanvi.com/status-json.xsl';
+
 export async function getAppDetails(): Promise<AppDetails | null> {
   try {
     const docRef = doc(dbFirestore, APP_DETAILS_COLLECTION, APP_DETAILS_DOC_ID);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
-      return { id: docSnap.id, ...docSnap.data() } as AppDetails;
+      const data = docSnap.data();
+      return {
+        id: docSnap.id,
+        ads: data.ads || false,
+        message: data.message || '',
+        showMessage: data.showMessage || false,
+        version: data.version || '0.0.0',
+        streamingUrl: data.streamingUrl || FALLBACK_STREAMING_URL,
+        metaDataUrl: data.metaDataUrl || FALLBACK_METADATA_URL,
+      } as AppDetails;
     } else {
       console.warn(`App details document not found at ${APP_DETAILS_COLLECTION}/${APP_DETAILS_DOC_ID}`);
-      // Return default values or handle as an error case
+      // Return default values
       return {
         ads: false,
         message: '',
         showMessage: false,
         version: '0.0.0',
+        streamingUrl: FALLBACK_STREAMING_URL,
+        metaDataUrl: FALLBACK_METADATA_URL,
       };
     }
   } catch (error) {
@@ -33,6 +47,8 @@ export async function getAppDetails(): Promise<AppDetails | null> {
       message: 'Error loading app settings.',
       showMessage: true, // Show error message
       version: '0.0.0',
+      streamingUrl: FALLBACK_STREAMING_URL,
+      metaDataUrl: FALLBACK_METADATA_URL,
     };
   }
 }
