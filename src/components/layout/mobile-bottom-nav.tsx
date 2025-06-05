@@ -10,6 +10,7 @@ const moreScreenChildPaths = [
   '/settings',
   '/programs',
   '/artists',
+  '/requests', // Added requests path
   '/about',
   '/contact',
   '/privacy',

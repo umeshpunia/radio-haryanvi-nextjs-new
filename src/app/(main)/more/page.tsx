@@ -10,14 +10,15 @@ import {
   ChevronRightIcon,
   LayoutGridIcon,
   Gamepad2Icon,
-  UsersIcon, // Added UsersIcon for Artists
-  SmartphoneIcon // Added for Device Info
+  UsersIcon,
+  SmartphoneIcon,
+  Music3Icon, // Added for Song Requests
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 export const metadata: Metadata = {
   title: 'More Options - Radio Haryanvi',
-  description: 'Explore additional pages like settings, program schedules, privacy policy, about us, contact information, games, artists, and device info for Radio Haryanvi.',
+  description: 'Explore additional pages like settings, program schedules, privacy policy, about us, contact information, games, artists, device info, and song requests for Radio Haryanvi.',
 };
 
 interface MoreLinkItem {
@@ -45,6 +46,12 @@ const moreLinks: MoreLinkItem[] = [
     label: 'Haryanvi Artists',
     icon: <UsersIcon className="h-6 w-6 text-primary" />,
     description: 'Discover talented Haryanvi artists.',
+  },
+  {
+    href: '/requests',
+    label: 'Song Request (Farmaish)',
+    icon: <Music3Icon className="h-6 w-6 text-primary" />,
+    description: 'Request your favorite Haryanvi songs.',
   },
   {
     href: '/about',
