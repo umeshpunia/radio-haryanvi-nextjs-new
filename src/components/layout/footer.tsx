@@ -17,13 +17,14 @@ export function Footer() {
     { href: "/contact", label: "Contact" },
     { href: "/privacy", label: "Privacy Policy" },
     { href: "/donors", label: "Donors" },
+    { href: "/artists", label: "Artists" }, // Added Artists link
   ];
 
   const socialLinks = [
     { name: 'Facebook', href: '#', icon: <Facebook className="h-6 w-6" /> },
     { name: 'Twitter', href: '#', icon: <Twitter className="h-6 w-6" /> },
     { name: 'Instagram', href: '#', icon: <Instagram className="h-6 w-6" /> },
-    { name: 'YouTube', href: '#', icon: <Youtube className="h-6 w-6" /> }, // Ensured h-6 w-6
+    { name: 'YouTube', href: '#', icon: <Youtube className="h-6 w-6" /> },
   ];
 
   return (
