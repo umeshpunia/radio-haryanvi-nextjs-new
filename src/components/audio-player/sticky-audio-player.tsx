@@ -18,9 +18,8 @@ import { Howl } from 'howler';
 
 const LIVE_RADIO_TRACK_ID = 'liveRadioHaryanvi';
 // IMPORTANT: Verify this URL. It should point to your Icecast JSON status endpoint.
-// Common endpoints are /status-json.xsl, /json.xsl, /live.json, or a custom one.
-// Example: 'https://your-icecast-server.com/status-json.xsl'
-const METADATA_URL = 'https://listen.weareharyanvi.com/';
+// Example: 'https://your-icecast-server.com/status-json.xsl' or 'https://your-icecast-server.com/live.json'
+const METADATA_URL = 'https://listen.weareharyanvi.com/'; // This should be the URL that returns the JSON like the example provided.
 const METADATA_FETCH_INTERVAL = 15000; // 15 seconds
 
 export function StickyAudioPlayer() {
@@ -126,7 +125,7 @@ export function StickyAudioPlayer() {
       howlInstance.play();
     } else if (!isPlaying && howlInstance.playing()) {
       setIsLoadingAudio(true);
-      howlInstance.stop();
+      howlInstance.stop(); // Use stop() for live streams to ensure fresh connection on resume
     }
   }, [isPlaying, howlInstance, isClient]);
 
@@ -140,54 +139,43 @@ export function StickyAudioPlayer() {
       return;
     }
     try {
-      const response = await fetch(METADATA_URL);
+      const response = await fetch(`${METADATA_URL}?${new Date().getTime()}`); // Add cache buster
       if (!response.ok) {
         console.warn(`Failed to fetch metadata: ${response.status} ${response.statusText} from ${METADATA_URL}`);
-        // Dispatch null to clear old metadata if fetch fails
         dispatch(updateCurrentTrackMetadata({ title: null, artist: null }));
         return;
       }
       const data = await response.json();
-      console.log('Fetched Icecast Metadata:', data); // Log the raw data
+      console.log('Fetched Icecast Metadata:', data); 
 
       let songTitle: string | null = null;
       let songArtist: string | null = null;
 
       if (data.icestats && data.icestats.source) {
+          // The provided JSON shows source as an object. 
+          // If it could sometimes be an array (e.g. multiple streams), this check is robust.
           const source = Array.isArray(data.icestats.source) ? data.icestats.source[0] : data.icestats.source;
+          
           if (source) {
-              if (source.song && typeof source.song === 'string') {
-                  const parts = source.song.split(' - ');
+              // Primarily use the 'title' field from the source for song info
+              // Fallback to yp_currently_playing if title is not available
+              const currentPlayingString = source.title || source.yp_currently_playing || null;
+
+              if (currentPlayingString && typeof currentPlayingString === 'string') {
+                  const parts = currentPlayingString.split(' - ');
                   if (parts.length >= 2) {
                       songArtist = parts[0].trim();
                       songTitle = parts.slice(1).join(' - ').trim();
                   } else {
-                      songTitle = source.song.trim();
+                      songTitle = currentPlayingString.trim(); // If no ' - ', assume the whole string is the title
                   }
               }
+              
+              // Additional fallback for artist if not found in 'title' string but present as 'source.artist'
               if (!songArtist && source.artist && typeof source.artist === 'string') {
                   songArtist = source.artist.trim();
               }
-              if (!songTitle && source.title && typeof source.title === 'string') {
-                  songTitle = source.title.trim();
-              }
-          }
-      }
-
-      if (!songTitle && (data.title || data.songtitle || data.song)) {
-          songTitle = data.title || data.songtitle || data.song || null;
-          if (typeof songTitle === 'string') songTitle = songTitle.trim();
-      }
-      if (!songArtist && data.artist) {
-          songArtist = data.artist;
-          if (typeof songArtist === 'string') songArtist = songArtist.trim();
-      }
-
-      if (songTitle && !songArtist && songTitle.includes(' - ')) {
-          const parts = songTitle.split(' - ');
-          if (parts.length >= 2) {
-              songArtist = parts[0].trim();
-              songTitle = parts.slice(1).join(' - ').trim();
+              // You could also check source.server_name or source.server_description for fallbacks if needed.
           }
       }
       
@@ -197,12 +185,12 @@ export function StickyAudioPlayer() {
       console.warn(`Error fetching or parsing stream metadata from ${METADATA_URL}:`, error);
       dispatch(updateCurrentTrackMetadata({ title: null, artist: null }));
     }
-  }, [currentTrack, dispatch]); // Added currentTrack and dispatch to dependencies
+  }, [currentTrack, dispatch]);
 
 
   useEffect(() => {
     if (isClient && isPlaying && currentTrack && currentTrack.id === LIVE_RADIO_TRACK_ID) {
-      fetchMetadata();
+      fetchMetadata(); // Fetch immediately on play
       if (metadataIntervalRef.current) clearInterval(metadataIntervalRef.current);
       metadataIntervalRef.current = setInterval(fetchMetadata, METADATA_FETCH_INTERVAL);
     } else {
@@ -210,9 +198,8 @@ export function StickyAudioPlayer() {
         clearInterval(metadataIntervalRef.current);
         metadataIntervalRef.current = null;
       }
-      if (currentTrack && currentTrack.id === LIVE_RADIO_TRACK_ID && (currentTrack.currentSongTitle || currentTrack.currentSongArtist)) {
-        // dispatch(updateCurrentTrackMetadata({ title: null, artist: null }));
-      }
+      // Optional: Clear metadata when not playing live stream or when track changes
+      // This is handled by setCurrentTrack re-initializing metadata to null
     }
 
     return () => {
@@ -221,13 +208,14 @@ export function StickyAudioPlayer() {
         metadataIntervalRef.current = null;
       }
     };
-  }, [isClient, isPlaying, currentTrack, dispatch, fetchMetadata]); // Added fetchMetadata to dependencies
+  }, [isClient, isPlaying, currentTrack, dispatch, fetchMetadata]);
 
 
   const handlePlayPause = useCallback(() => {
     if (!currentTrack && playlist.length > 0) {
         dispatch(setCurrentTrack(playlist[0]));
-        dispatch(play());
+        // Play will be triggered by the useEffect watching isPlaying and currentTrack
+        dispatch(play()); 
         return;
     }
 
@@ -282,3 +270,4 @@ export function StickyAudioPlayer() {
     </div>
   );
 }
+
