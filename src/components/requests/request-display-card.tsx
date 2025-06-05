@@ -2,51 +2,35 @@
 import type { SongRequest } from '@/services/request-service';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { format, formatDistanceToNowStrict } from 'date-fns';
-import { Timestamp } from 'firebase/firestore'; // Import Timestamp
-import { CalendarDaysIcon, ClockIcon, Music2Icon, UserIcon, PhoneIcon, MapPinIcon, CheckCircle2, XCircle, Loader2Icon, History } from 'lucide-react';
+import { Timestamp } from 'firebase/firestore';
+import { CalendarDaysIcon, ClockIcon, Music2Icon, UserIcon, PhoneIcon, MapPinIcon, CheckCircle2, XCircle, History, InfoIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface RequestDisplayCardProps {
   request: SongRequest;
 }
 
-// Helper function to safely convert various timestamp formats to a Date object
 function toDateSafe(value: any): Date | null {
   if (!value) return null;
-
-  if (value instanceof Timestamp) {
-    return value.toDate();
-  }
-  // Handle cases where Timestamp might be a plain object (e.g., { seconds: ..., nanoseconds: ... })
+  if (value instanceof Timestamp) return value.toDate();
   if (typeof value === 'object' && typeof value.seconds === 'number' && typeof value.nanoseconds === 'number') {
-    try {
-      return new Timestamp(value.seconds, value.nanoseconds).toDate();
-    } catch (e) {
-      console.warn("Could not convert plain object to Timestamp:", value, e);
-      return null;
-    }
+    try { return new Timestamp(value.seconds, value.nanoseconds).toDate(); }
+    catch (e) { console.warn("Could not convert plain object to Timestamp:", value, e); return null; }
   }
-  // Handle JS Date object
-  if (value instanceof Date) {
-    return value;
-  }
-  // Handle string or number (milliseconds)
+  if (value instanceof Date) return value;
   if (typeof value === 'string' || typeof value === 'number') {
     const d = new Date(value);
-    if (!isNaN(d.getTime())) {
-      return d;
-    }
+    if (!isNaN(d.getTime())) return d;
   }
   console.warn("Could not convert value to Date:", value);
   return null;
 }
 
-
 export function RequestDisplayCard({ request }: RequestDisplayCardProps) {
   const submittedAtDate = toDateSafe(request.submittedAt);
   const farmaishOnDate = toDateSafe(request.farmaishOn);
 
-  const getStatusBadge = (status?: SongRequest['status']) => { // status is optional
+  const getStatusBadge = (status?: SongRequest['status']) => {
     switch (status) {
       case 'pending':
         return <Badge variant="outline" className="text-yellow-600 border-yellow-600"><History className="mr-1 h-3 w-3" />Pending</Badge>;
@@ -57,9 +41,16 @@ export function RequestDisplayCard({ request }: RequestDisplayCardProps) {
       case 'rejected':
         return <Badge variant="destructive"><XCircle className="mr-1 h-3 w-3" />Rejected</Badge>;
       default:
-        return <Badge variant="secondary">Unknown Status</Badge>; // Fallback for undefined or unknown status
+        return <Badge variant="secondary">Unknown Status</Badge>;
     }
   };
+
+  // Determine what to display for time preference
+  // Prioritize `preferredTime` if it exists and isn't just an empty string.
+  // Otherwise, use `time` (which could be "Will Be Update" or an old value).
+  const timeDisplayValue = request.preferredTime && request.preferredTime.trim() !== "" 
+    ? request.preferredTime 
+    : request.time;
 
   return (
     <Card className="shadow-md hover:shadow-lg transition-shadow duration-200">
@@ -90,10 +81,18 @@ export function RequestDisplayCard({ request }: RequestDisplayCardProps) {
             Preferred Date: <span className="text-foreground ml-1">{format(farmaishOnDate, 'PPP')}</span>
           </div>
         )}
-        {request.preferredTime && ( // This will now also consider the 'time' field from old docs
+        {/* Display combined time preference */}
+        {timeDisplayValue && (
           <div className="flex items-center text-muted-foreground">
             <ClockIcon className="mr-2 h-4 w-4 flex-shrink-0" />
-            Preferred Time: <span className="text-foreground ml-1 truncate">{request.preferredTime}</span>
+            Time Preference: <span className="text-foreground ml-1 truncate">{timeDisplayValue}</span>
+          </div>
+        )}
+        {/* Explicitly show 'time' field if it's "Will Be Update" and preferredTime was empty, or if you always want to show it */}
+        {request.time === "Will Be Update" && (!request.preferredTime || request.preferredTime.trim() === "") && (
+           <div className="flex items-center text-muted-foreground text-xs italic">
+            <InfoIcon className="mr-2 h-3 w-3 flex-shrink-0" />
+            Specific time: <span className="text-foreground ml-1">{request.time}</span>
           </div>
         )}
       </CardContent>
@@ -109,4 +108,3 @@ export function RequestDisplayCard({ request }: RequestDisplayCardProps) {
     </Card>
   );
 }
-
