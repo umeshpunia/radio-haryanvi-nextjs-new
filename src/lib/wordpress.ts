@@ -3,6 +3,10 @@
 const WP_API_BASE_URL = 'https://blog.weareharyanvi.com/wp-json/wp/v2';
 // const WP_API_BASE_URL = 'https://your-wordpress-site.com/wp-json/wp/v2'; // Replace with your actual WordPress site URL
 
+const COMMON_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+};
+
 export interface Post {
   id: number;
   date: string;
@@ -49,7 +53,10 @@ export async function fetchPostsFromApi(page = 1, categoryId?: number, perPage =
   }
 
   try {
-    const response = await fetch(url, { next: { revalidate: 3600 } }); // Revalidate every hour
+    const response = await fetch(url, { 
+      headers: COMMON_HEADERS,
+      next: { revalidate: 3600 } 
+    });
     if (!response.ok) {
       const errorBody = await response.text();
       console.error(`WordPress API error ${response.status} for URL: ${url}. Body: ${errorBody.substring(0, 500)}`);
@@ -59,6 +66,11 @@ export async function fetchPostsFromApi(page = 1, categoryId?: number, perPage =
     if (!contentType || !contentType.includes("application/json")) {
       const errorBody = await response.text();
       console.error(`WordPress API did not return JSON for URL: ${url}. ContentType: ${contentType}. Body: ${errorBody.substring(0,500)}`);
+      // If it's HTML and has "Bot Verification", throw a specific error.
+      if (errorBody.toLowerCase().includes('bot verification') || errorBody.toLowerCase().includes('recaptcha')) {
+        console.error(`Bot verification detected for URL: ${url}`);
+        throw new Error(`Bot verification required for WordPress API at ${url}. Please check server security settings or whitelist IP.`);
+      }
       throw new Error(`Expected JSON response from WordPress API but received ${contentType} for URL: ${url}`);
     }
     const totalPages = Number(response.headers.get('X-WP-TotalPages')) || 1;
@@ -73,7 +85,10 @@ export async function fetchPostsFromApi(page = 1, categoryId?: number, perPage =
 export async function fetchCategoriesFromApi(): Promise<Category[]> {
   const url = `${WP_API_BASE_URL}/categories?hide_empty=true&orderby=count&order=desc`; // Fetch categories with posts, order by count
   try {
-    const response = await fetch(url, { next: { revalidate: 86400 } }); // Revalidate once a day
+    const response = await fetch(url, { 
+      headers: COMMON_HEADERS,
+      next: { revalidate: 86400 } 
+    }); 
     if (!response.ok) {
       const errorBody = await response.text();
       console.error(`WordPress API error ${response.status} for URL: ${url}. Body: ${errorBody.substring(0, 500)}`);
@@ -83,6 +98,10 @@ export async function fetchCategoriesFromApi(): Promise<Category[]> {
     if (!contentType || !contentType.includes("application/json")) {
       const errorBody = await response.text();
       console.error(`WordPress API did not return JSON for URL: ${url}. ContentType: ${contentType}. Body: ${errorBody.substring(0,500)}`);
+      if (errorBody.toLowerCase().includes('bot verification') || errorBody.toLowerCase().includes('recaptcha')) {
+        console.error(`Bot verification detected for URL: ${url}`);
+        throw new Error(`Bot verification required for WordPress API at ${url}. Please check server security settings or whitelist IP.`);
+      }
       throw new Error(`Expected JSON response from WordPress API but received ${contentType} for URL: ${url}`);
     }
     const categories: Category[] = await response.json();
@@ -96,9 +115,11 @@ export async function fetchCategoriesFromApi(): Promise<Category[]> {
 export async function fetchPostBySlugApi(slug: string): Promise<Post | null> {
   const url = `${WP_API_BASE_URL}/posts?slug=${slug}&_embed`;
   try {
-    const response = await fetch(url, { next: { revalidate: 3600 } }); // Revalidate every hour
+    const response = await fetch(url, { 
+      headers: COMMON_HEADERS,
+      next: { revalidate: 3600 } 
+    }); 
     if (!response.ok) {
-      // Try to get more info if response is not ok
       const errorBody = await response.text();
       console.error(`WordPress API error ${response.status} for URL: ${url}. Slug: ${slug}. Body: ${errorBody.substring(0, 500)}`);
       throw new Error(`WordPress API error: ${response.statusText} fetching slug '${slug}' from URL: ${url}`);
@@ -108,10 +129,17 @@ export async function fetchPostBySlugApi(slug: string): Promise<Post | null> {
     if (!contentType || !contentType.includes("application/json")) {
       const errorBody = await response.text();
       console.error(`WordPress API did not return JSON for slug '${slug}' (URL: ${url}). ContentType: ${contentType}. Body: ${errorBody.substring(0,500)}`);
-      // It's possible a "not found" slug returns HTML with a 200 OK in some WordPress setups.
-      // In this case, it's better to return null than throw an error that breaks the page.
+      
+      if (errorBody.toLowerCase().includes('bot verification') || errorBody.toLowerCase().includes('recaptcha')) {
+        console.error(`Bot verification detected for slug '${slug}' (URL: ${url})`);
+        // For fetchPostBySlug, we might still want to return null rather than throw, 
+        // to prevent a single problematic fetch from breaking the page if it can be handled gracefully.
+        // However, for debugging, throwing might be better initially. Let's keep it throwing for now.
+        throw new Error(`Bot verification required for WordPress API when fetching slug '${slug}' from URL: ${url}. Please check server security settings or whitelist IP.`);
+      }
+      
       if (response.ok && contentType.includes("text/html")) {
-        console.warn(`Slug '${slug}' likely not found, WordPress returned HTML instead of JSON.`);
+        console.warn(`Slug '${slug}' likely not found or other issue, WordPress returned HTML instead of JSON. URL: ${url}`);
         return null;
       }
       throw new Error(`Expected JSON response from WordPress API for slug '${slug}' but received ${contentType} from URL: ${url}`);
@@ -121,9 +149,6 @@ export async function fetchPostBySlugApi(slug: string): Promise<Post | null> {
     return posts.length > 0 ? posts[0] : null;
   } catch (error) {
     console.error(`Failed to fetch post by slug ${slug}:`, error);
-    // If the error is about parsing, it's already caught by the Content-Type check or the JSON.parse failure.
-    // If it's a network error or other, rethrow.
-    // Consider not rethrowing if you want to gracefully handle it as "not found"
     throw error;
   }
 }
@@ -131,7 +156,10 @@ export async function fetchPostBySlugApi(slug: string): Promise<Post | null> {
 export async function fetchAuthorApi(id: number): Promise<Author | null> {
   const url = `${WP_API_BASE_URL}/users/${id}`;
   try {
-    const response = await fetch(url, { next: { revalidate: 86400 } }); // Revalidate once a day
+    const response = await fetch(url, { 
+      headers: COMMON_HEADERS,
+      next: { revalidate: 86400 } 
+    });
     if (!response.ok) {
       const errorBody = await response.text();
       console.error(`WordPress API error ${response.status} for author ${id}. Body: ${errorBody.substring(0, 500)}`);
@@ -141,20 +169,27 @@ export async function fetchAuthorApi(id: number): Promise<Author | null> {
     if (!contentType || !contentType.includes("application/json")) {
       const errorBody = await response.text();
       console.error(`WordPress API did not return JSON for author ${id}. ContentType: ${contentType}. Body: ${errorBody.substring(0,500)}`);
+      if (errorBody.toLowerCase().includes('bot verification') || errorBody.toLowerCase().includes('recaptcha')) {
+        console.error(`Bot verification detected when fetching author ${id}`);
+        throw new Error(`Bot verification required for WordPress API when fetching author ${id}. Please check server security settings or whitelist IP.`);
+      }
       throw new Error(`Expected JSON response from WordPress API for author ${id} but received ${contentType}`);
     }
     const author: Author = await response.json();
     return author;
   } catch (error) {
     console.error(`Failed to fetch author ${id}:`, error);
-    return null; // Return null on error to not break post display
+    return null; 
   }
 }
 
 export async function fetchCategoryBySlugFromApi(slug: string): Promise<Category | null> {
   const url = `${WP_API_BASE_URL}/categories?slug=${slug}`;
   try {
-    const response = await fetch(url, { next: { revalidate: 86400 } }); // Revalidate once a day
+    const response = await fetch(url, { 
+      headers: COMMON_HEADERS,
+      next: { revalidate: 86400 } 
+    });
     if (!response.ok) {
       const errorBody = await response.text();
       console.error(`WordPress API error ${response.status} for URL: ${url}. Body: ${errorBody.substring(0, 500)}`);
@@ -164,6 +199,10 @@ export async function fetchCategoryBySlugFromApi(slug: string): Promise<Category
     if (!contentType || !contentType.includes("application/json")) {
       const errorBody = await response.text();
       console.error(`WordPress API did not return JSON for URL: ${url}. ContentType: ${contentType}. Body: ${errorBody.substring(0,500)}`);
+      if (errorBody.toLowerCase().includes('bot verification') || errorBody.toLowerCase().includes('recaptcha')) {
+        console.error(`Bot verification detected for URL: ${url}`);
+        throw new Error(`Bot verification required for WordPress API at ${url}. Please check server security settings or whitelist IP.`);
+      }
       throw new Error(`Expected JSON response from WordPress API but received ${contentType} for URL: ${url}`);
     }
     const categories: Category[] = await response.json();
