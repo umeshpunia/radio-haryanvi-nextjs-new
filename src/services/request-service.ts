@@ -22,6 +22,7 @@ export interface FirestoreRequestData {
   farmaish: string;
   farmaishOn?: Timestamp | null;
   preferredTime?: string;
+  time?: string; // Allow for old field name
   submittedAt: Timestamp;
   status: 'pending' | 'approved' | 'played' | 'rejected';
 }
@@ -38,7 +39,7 @@ export async function addSongRequest(data: NewRequestData): Promise<string> {
     const requestsCollectionRef = collection(dbFirestore, REQUESTS_COLLECTION);
     
     // Prepare data for Firestore, converting Date to Timestamp if present
-    const firestorePayload: Omit<FirestoreRequestData, 'submittedAt' | 'status'> & { submittedAt: any; status: string } = {
+    const firestorePayload: Omit<FirestoreRequestData, 'submittedAt' | 'status' | 'time'> & { submittedAt: any; status: string } = {
       fullName: data.fullName,
       mobile: data.mobile,
       address: data.address,
@@ -61,17 +62,28 @@ export async function addSongRequest(data: NewRequestData): Promise<string> {
 export async function getSongRequests(): Promise<SongRequest[]> {
   try {
     const requestsCollectionRef = collection(dbFirestore, REQUESTS_COLLECTION);
+    // This query requires 'submittedAt' to exist and be a Timestamp on the documents.
+    // If 'submittedAt' is missing or of a different type, documents might not be returned.
     const q = query(requestsCollectionRef, orderBy('submittedAt', 'desc'));
     const querySnapshot = await getDocs(q);
 
     const requests: SongRequest[] = [];
     querySnapshot.forEach((doc) => {
-      requests.push({ id: doc.id, ...doc.data() } as SongRequest);
+      const data = doc.data() as FirestoreRequestData; // Cast to include 'time'
+      requests.push({
+        id: doc.id,
+        ...data,
+        // Handle potential 'time' field from older documents for 'preferredTime'
+        preferredTime: data.preferredTime || data.time || '',
+      } as SongRequest);
     });
     
+    console.log('Successfully fetched requests from Firestore:', requests.length); // Added log for success
     return requests;
   } catch (error: any) {
     console.error('Error fetching song requests from Firestore:', error);
+    // It's important to check Firestore console for specific query errors if any.
     throw new Error('Could not retrieve song requests. Please try again later.');
   }
 }
+

@@ -22,7 +22,7 @@ function toDateSafe(value: any): Date | null {
     try {
       return new Timestamp(value.seconds, value.nanoseconds).toDate();
     } catch (e) {
-      console.error("Error converting plain object to Timestamp:", e, value);
+      console.warn("Could not convert plain object to Timestamp:", value, e);
       return null;
     }
   }
@@ -46,7 +46,7 @@ export function RequestDisplayCard({ request }: RequestDisplayCardProps) {
   const submittedAtDate = toDateSafe(request.submittedAt);
   const farmaishOnDate = toDateSafe(request.farmaishOn);
 
-  const getStatusBadge = (status: SongRequest['status']) => {
+  const getStatusBadge = (status?: SongRequest['status']) => { // status is optional
     switch (status) {
       case 'pending':
         return <Badge variant="outline" className="text-yellow-600 border-yellow-600"><History className="mr-1 h-3 w-3" />Pending</Badge>;
@@ -57,7 +57,7 @@ export function RequestDisplayCard({ request }: RequestDisplayCardProps) {
       case 'rejected':
         return <Badge variant="destructive"><XCircle className="mr-1 h-3 w-3" />Rejected</Badge>;
       default:
-        return <Badge variant="secondary">{status}</Badge>;
+        return <Badge variant="secondary">Unknown Status</Badge>; // Fallback for undefined or unknown status
     }
   };
 
@@ -90,18 +90,23 @@ export function RequestDisplayCard({ request }: RequestDisplayCardProps) {
             Preferred Date: <span className="text-foreground ml-1">{format(farmaishOnDate, 'PPP')}</span>
           </div>
         )}
-        {request.preferredTime && (
+        {request.preferredTime && ( // This will now also consider the 'time' field from old docs
           <div className="flex items-center text-muted-foreground">
             <ClockIcon className="mr-2 h-4 w-4 flex-shrink-0" />
             Preferred Time: <span className="text-foreground ml-1 truncate">{request.preferredTime}</span>
           </div>
         )}
       </CardContent>
-      {submittedAtDate && (
+      {submittedAtDate ? (
         <CardFooter className="text-xs text-muted-foreground pt-2 pb-3 border-t">
           Submitted: {formatDistanceToNowStrict(submittedAtDate, { addSuffix: true })}
+        </CardFooter>
+      ) : (
+        <CardFooter className="text-xs text-muted-foreground pt-2 pb-3 border-t">
+          Submitted: Unknown
         </CardFooter>
       )}
     </Card>
   );
 }
+
