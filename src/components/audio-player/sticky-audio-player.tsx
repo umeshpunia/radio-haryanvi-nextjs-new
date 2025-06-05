@@ -17,9 +17,8 @@ import { cn } from '@/lib/utils';
 import { Howl } from 'howler';
 
 const LIVE_RADIO_TRACK_ID = 'liveRadioHaryanvi';
-// IMPORTANT: Verify this URL. It should point to your Icecast JSON status endpoint.
-// Example: 'https://your-icecast-server.com/status-json.xsl' or 'https://your-icecast-server.com/live.json'
-const METADATA_URL = 'https://listen.weareharyanvi.com/'; // This should be the URL that returns the JSON like the example provided.
+// IMPORTANT: This URL points to your Icecast JSON status endpoint.
+const METADATA_URL = 'http://listen.weareharyanvi.com/status-json.xsl'; 
 const METADATA_FETCH_INTERVAL = 15000; // 15 seconds
 
 export function StickyAudioPlayer() {
@@ -45,7 +44,7 @@ export function StickyAudioPlayer() {
         id: LIVE_RADIO_TRACK_ID,
         title: 'Radio Haryanvi Live',
         artist: 'Live Stream',
-        url: 'https://listen.weareharyanvi.com/listen',
+        url: 'https://listen.weareharyanvi.com/listen', // This is the audio stream URL
         coverArt: 'https://placehold.co/100x100.png',
         currentSongTitle: null,
         currentSongArtist: null,
@@ -125,7 +124,7 @@ export function StickyAudioPlayer() {
       howlInstance.play();
     } else if (!isPlaying && howlInstance.playing()) {
       setIsLoadingAudio(true);
-      howlInstance.stop(); // Use stop() for live streams to ensure fresh connection on resume
+      howlInstance.stop(); 
     }
   }, [isPlaying, howlInstance, isClient]);
 
@@ -139,9 +138,14 @@ export function StickyAudioPlayer() {
       return;
     }
     try {
-      const response = await fetch(`${METADATA_URL}?${new Date().getTime()}`); // Add cache buster
+      // Add cache buster to METADATA_URL to prevent stale responses
+      const urlWithCacheBuster = METADATA_URL.includes('?') 
+        ? `${METADATA_URL}&cb=${new Date().getTime()}`
+        : `${METADATA_URL}?cb=${new Date().getTime()}`;
+
+      const response = await fetch(urlWithCacheBuster);
       if (!response.ok) {
-        console.warn(`Failed to fetch metadata: ${response.status} ${response.statusText} from ${METADATA_URL}`);
+        console.warn(`Failed to fetch metadata: ${response.status} ${response.statusText} from ${urlWithCacheBuster}`);
         dispatch(updateCurrentTrackMetadata({ title: null, artist: null }));
         return;
       }
@@ -151,14 +155,10 @@ export function StickyAudioPlayer() {
       let songTitle: string | null = null;
       let songArtist: string | null = null;
 
-      if (data.icestats && data.icestats.source) {
-          // The provided JSON shows source as an object. 
-          // If it could sometimes be an array (e.g. multiple streams), this check is robust.
+      if (data && data.icestats && data.icestats.source) {
           const source = Array.isArray(data.icestats.source) ? data.icestats.source[0] : data.icestats.source;
           
           if (source) {
-              // Primarily use the 'title' field from the source for song info
-              // Fallback to yp_currently_playing if title is not available
               const currentPlayingString = source.title || source.yp_currently_playing || null;
 
               if (currentPlayingString && typeof currentPlayingString === 'string') {
@@ -167,15 +167,13 @@ export function StickyAudioPlayer() {
                       songArtist = parts[0].trim();
                       songTitle = parts.slice(1).join(' - ').trim();
                   } else {
-                      songTitle = currentPlayingString.trim(); // If no ' - ', assume the whole string is the title
+                      songTitle = currentPlayingString.trim();
                   }
               }
               
-              // Additional fallback for artist if not found in 'title' string but present as 'source.artist'
               if (!songArtist && source.artist && typeof source.artist === 'string') {
                   songArtist = source.artist.trim();
               }
-              // You could also check source.server_name or source.server_description for fallbacks if needed.
           }
       }
       
@@ -190,7 +188,7 @@ export function StickyAudioPlayer() {
 
   useEffect(() => {
     if (isClient && isPlaying && currentTrack && currentTrack.id === LIVE_RADIO_TRACK_ID) {
-      fetchMetadata(); // Fetch immediately on play
+      fetchMetadata(); 
       if (metadataIntervalRef.current) clearInterval(metadataIntervalRef.current);
       metadataIntervalRef.current = setInterval(fetchMetadata, METADATA_FETCH_INTERVAL);
     } else {
@@ -198,8 +196,6 @@ export function StickyAudioPlayer() {
         clearInterval(metadataIntervalRef.current);
         metadataIntervalRef.current = null;
       }
-      // Optional: Clear metadata when not playing live stream or when track changes
-      // This is handled by setCurrentTrack re-initializing metadata to null
     }
 
     return () => {
@@ -214,7 +210,6 @@ export function StickyAudioPlayer() {
   const handlePlayPause = useCallback(() => {
     if (!currentTrack && playlist.length > 0) {
         dispatch(setCurrentTrack(playlist[0]));
-        // Play will be triggered by the useEffect watching isPlaying and currentTrack
         dispatch(play()); 
         return;
     }
