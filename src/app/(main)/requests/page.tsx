@@ -18,6 +18,7 @@ import {
 import { getSongRequests, SongRequest } from '@/services/request-service';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Timestamp } from 'firebase/firestore';
 
 function RequestPageSkeleton() {
   return (
@@ -44,6 +45,24 @@ function CardSkeleton() {
   );
 }
 
+// Helper function for safe date conversion, similar to the one in RequestDisplayCard
+function toDateSafeForFiltering(value: any): Date | null {
+  if (!value) return null;
+  if (value instanceof Timestamp) return value.toDate();
+  if (typeof value === 'object' && typeof value.seconds === 'number' && typeof value.nanoseconds === 'number') {
+    try { return new Timestamp(value.seconds, value.nanoseconds).toDate(); }
+    catch (e) { console.warn("Could not convert plain object to Timestamp for filtering:", value, e); return null; }
+  }
+  if (value instanceof Date) return value;
+  if (typeof value === 'string' || typeof value === 'number') {
+    const d = new Date(value);
+    if (!isNaN(d.getTime())) return d;
+  }
+  console.warn("Could not convert value to Date for filtering:", value);
+  return null;
+}
+
+
 export default function SongRequestPage() {
   const [requests, setRequests] = useState<SongRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -55,10 +74,24 @@ export default function SongRequestPage() {
     setError(null);
     try {
       const fetchedRequests = await getSongRequests();
-      // console.log('Fetched Requests from Service on Page:', fetchedRequests);
-      setRequests(fetchedRequests);
+      
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      sevenDaysAgo.setHours(0, 0, 0, 0); // Set to the beginning of the day for comparison
+
+      const filteredRequests = fetchedRequests.filter(request => {
+        const requestDate = toDateSafeForFiltering(request.farmaishOn);
+        if (!requestDate) {
+          // If date can't be parsed, or is missing, don't show it (or decide on other behavior)
+          return false; 
+        }
+        // Compare only the date part, not time
+        const requestDateOnly = new Date(requestDate.getFullYear(), requestDate.getMonth(), requestDate.getDate());
+        return requestDateOnly.getTime() >= sevenDaysAgo.getTime();
+      });
+
+      setRequests(filteredRequests);
     } catch (err: any) {
-      // console.error('Error in fetchRequests on page:', err);
       setError(err.message || "Failed to load requests.");
       setRequests([]);
     } finally {
@@ -88,21 +121,19 @@ export default function SongRequestPage() {
   );
 
   return (
-    // Dialog root wraps the entire content that can trigger or display the dialog
     <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
       <MobileSubPageHeader title="Song Requests" actionButton={addRequestIconTrigger} />
-      <div className="container mx-auto px-4 py-8 md:py-0 flex flex-col h-full">
-        <header className="mb-8 text-center">
+      <div className="container mx-auto px-4 py-8 md:py-0 flex flex-col h-[calc(100vh-3.5rem-1px)] md:h-auto"> {/* Adjust height for mobile header */}
+        <header className="mb-8 text-center pt-4 md:pt-0">
           <ListChecksIcon className="w-20 h-20 text-primary mx-auto mb-6" />
           <h1 className="font-headline text-4xl md:text-5xl font-bold text-primary mb-4">
             Your Song Requests
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-            View previously submitted Farmaish or add a new one.
+            View previously submitted Farmaish (last 7 days) or add a new one.
           </p>
         </header>
 
-        {/* Centered "Submit New Request" button, hidden on mobile (md:flex) */}
         <div className="mb-8 hidden md:flex justify-center">
           <DialogTrigger asChild>
             <Button size="lg">
@@ -120,7 +151,7 @@ export default function SongRequestPage() {
           )}
           {!isLoading && !error && requests.length === 0 && (
             <p className="text-center text-muted-foreground py-10">
-              No song requests found. Be the first to submit one!
+              No recent song requests found (last 7 days). Be the first to submit one!
             </p>
           )}
           {!isLoading && !error && requests.length > 0 && (
@@ -134,7 +165,7 @@ export default function SongRequestPage() {
           )}
         </section>
 
-        <section className="mt-10 text-center max-w-2xl mx-auto pb-4">
+        <section className="mt-auto text-center max-w-2xl mx-auto py-4 md:pb-4">
           <h2 className="font-headline text-2xl font-semibold mb-4 text-primary">How Requests Work</h2>
           <div className="space-y-3 text-muted-foreground text-left text-sm">
             <p>
@@ -153,7 +184,6 @@ export default function SongRequestPage() {
         </section>
       </div>
       
-      {/* DialogContent is a direct child of Dialog, rendered based on isFormOpen state */}
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Submit Your Song Request</DialogTitle>
