@@ -1,3 +1,4 @@
+
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface Track {
@@ -40,9 +41,9 @@ const audioPlayerSlice = createSlice({
       state.currentTrack = action.payload;
       state.isPlaying = false; 
       state.currentTime = 0;
-      state.duration = 0;
+      state.duration = 0; // Duration might be specific to track or Infinity for streams
       if (state.currentTrack) {
-        // Reset dynamic metadata when track changes
+        // Reset dynamic metadata when track changes, ensuring type consistency
         state.currentTrack.currentSongTitle = null;
         state.currentTrack.currentSongArtist = null;
       }
@@ -64,10 +65,12 @@ const audioPlayerSlice = createSlice({
     setDuration: (state, action: PayloadAction<number>) => {
       state.duration = action.payload;
     },
-    updateCurrentTrackMetadata: (state, action: PayloadAction<{ title?: string; artist?: string }>) => {
+    updateCurrentTrackMetadata: (state, action: PayloadAction<{ title?: string | null; artist?: string | null }>) => {
       if (state.currentTrack) {
-        state.currentTrack.currentSongTitle = action.payload.title || state.currentTrack.currentSongTitle || null;
-        state.currentTrack.currentSongArtist = action.payload.artist || state.currentTrack.currentSongArtist || null;
+        // If payload provides a title (even empty string), use it; otherwise, keep existing or set to null.
+        state.currentTrack.currentSongTitle = action.payload.title !== undefined ? action.payload.title : state.currentTrack.currentSongTitle;
+        // If payload provides an artist (even empty string), use it; otherwise, keep existing or set to null.
+        state.currentTrack.currentSongArtist = action.payload.artist !== undefined ? action.payload.artist : state.currentTrack.currentSongArtist;
       }
     },
     playNext: (state) => {

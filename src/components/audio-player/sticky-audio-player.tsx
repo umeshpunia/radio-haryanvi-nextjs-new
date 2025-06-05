@@ -16,16 +16,15 @@ import { PlayIcon, PauseIcon, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Howl } from 'howler';
 
-const METADATA_URL = 'https://listen.weareharyanvi.com/'; 
-const METADATA_FETCH_INTERVAL = 15000; 
+const LIVE_RADIO_TRACK_ID = 'liveRadioHaryanvi';
+const METADATA_URL = 'https://listen.weareharyanvi.com/'; // Assumed Icecast JSON metadata URL (e.g., /status-json.xsl or custom)
+const METADATA_FETCH_INTERVAL = 15000; // 15 seconds
 
 export function StickyAudioPlayer() {
   const dispatch = useAppDispatch();
-  // Read isPlaying from Redux state directly in event handlers
-  // to ensure they have the latest value, not the one captured by their closure.
   const isPlayingRef = useRef<boolean>(false);
   const { currentTrack, isPlaying, volume, playlist } = useAppSelector((state) => {
-    isPlayingRef.current = state.audioPlayer.isPlaying; // Keep ref updated
+    isPlayingRef.current = state.audioPlayer.isPlaying;
     return state.audioPlayer;
   });
 
@@ -41,13 +40,13 @@ export function StickyAudioPlayer() {
   useEffect(() => {
     if (isClient && !currentTrack && playlist.length === 0) {
       dispatch(setCurrentTrack({ 
-        id: 'liveRadioHaryanvi', 
+        id: LIVE_RADIO_TRACK_ID, 
         title: 'Radio Haryanvi Live', 
         artist: 'Live Stream', 
         url: 'https://listen.weareharyanvi.com/listen', 
         coverArt: 'https://placehold.co/100x100.png',
-        currentSongTitle: null,
-        currentSongArtist: null,
+        currentSongTitle: null, // Explicitly initialize
+        currentSongArtist: null, // Explicitly initialize
       }));
     }
   }, [dispatch, currentTrack, playlist, isClient]);
@@ -75,43 +74,32 @@ export function StickyAudioPlayer() {
         dispatch(setDuration(newHowl.duration()));
       },
       onplay: () => {
-        // Use ref here for the most current state
         if (!isPlayingRef.current) dispatch(play()); 
         setIsLoadingAudio(false);
       },
-      onpause: () => { // Handles system-initiated pauses or if howlInstance.pause() was directly called
+      onpause: () => {
         if (isPlayingRef.current) dispatch(pause());
         setIsLoadingAudio(false);
       },
-      onstop: () => { // Handles howlInstance.stop()
+      onstop: () => {
         if (isPlayingRef.current) dispatch(pause());
         setIsLoadingAudio(false);
       },
-      onend: () => { // Relevant for non-live streams, treat as stop/pause
+      onend: () => {
         if (isPlayingRef.current) dispatch(pause());
         setIsLoadingAudio(false);
       },
       onloaderror: (id, error) => {
         console.error(
           `Howler load error (code: ${error}) for track URL: ${currentTrack.url}.`,
-          `Error code descriptions:`,
-          `1. ABORTED: The loading of the audio file was aborted.`,
-          `2. NETWORK: A network error occurred while fetching the audio file.`,
-          `   - Check CORS settings on the server (${new URL(currentTrack.url).origin}). It needs 'Access-Control-Allow-Origin'.`,
-          `   - Verify the stream URL is correct and the stream is online.`,
-          `   - Ensure no mixed content issues (HTTPS app trying to load HTTP stream).`,
-          `3. DECODE: The audio file could not be decoded.`,
-          `4. SRC_NOT_SUPPORTED: The audio source is not supported or the URL is invalid.`
+          `Error code descriptions: 1. ABORTED, 2. NETWORK, 3. DECODE, 4. SRC_NOT_SUPPORTED.`
         );
         if (isPlayingRef.current) dispatch(pause());
         setIsLoadingAudio(false);
       },
       onplayerror: (id, error) => {
         console.error(
-          `Howler play error (code: ${error}) for track ID: ${currentTrack.id}, URL: ${currentTrack.url}.`,
-          `Common reasons:`,
-          `1. AUDIO_LOCKED: Playback was blocked until a user interaction (e.g., click).`,
-          `2. NETWORK/DECODE issues after loading.`
+          `Howler play error (code: ${error}) for track ID: ${currentTrack.id}, URL: ${currentTrack.url}.`
         );
         if (isPlayingRef.current) dispatch(pause());
         setIsLoadingAudio(false);
@@ -125,7 +113,7 @@ export function StickyAudioPlayer() {
       setHowlInstance(null);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentTrack?.url, dispatch, isClient]); // isPlaying is intentionally not in deps of this effect
+  }, [currentTrack?.url, dispatch, isClient]); 
 
   useEffect(() => {
     if (!howlInstance || !isClient) return;
@@ -135,10 +123,9 @@ export function StickyAudioPlayer() {
       howlInstance.play();
     } else if (!isPlaying && howlInstance.playing()) {
       setIsLoadingAudio(true);
-      howlInstance.stop(); // Use stop() here
+      howlInstance.stop();
     }
-    // isLoadingAudio will be set to false by Howler's onplay/onstop/onpause event handlers
-  }, [isPlaying, howlInstance, isClient]); // This effect syncs Redux isPlaying to Howler
+  }, [isPlaying, howlInstance, isClient]);
 
   useEffect(() => {
     if (!howlInstance || !isClient) return;
@@ -147,7 +134,7 @@ export function StickyAudioPlayer() {
 
   useEffect(() => {
     const fetchMetadata = async () => {
-      if (!currentTrack || currentTrack.id !== 'liveRadioHaryanvi' || !METADATA_URL) {
+      if (!currentTrack || currentTrack.id !== LIVE_RADIO_TRACK_ID || !METADATA_URL) {
         return;
       }
       try {
@@ -157,17 +144,64 @@ export function StickyAudioPlayer() {
           return;
         }
         const data = await response.json();
-        const songTitle = data.title || data.songtitle || data.song || null;
-        const songArtist = data.artist || null;
+        
+        let songTitle: string | null = null;
+        let songArtist: string | null = null;
+
+        // Try common Icecast /status-json.xsl structure
+        if (data.icestats && data.icestats.source) {
+            const source = Array.isArray(data.icestats.source) ? data.icestats.source[0] : data.icestats.source;
+            if (source) {
+                // Icecast often has a 'song' field like "Artist - Title"
+                // or separate 'artist' and 'title' fields.
+                if (source.song && typeof source.song === 'string') {
+                    const parts = source.song.split(' - ');
+                    if (parts.length >= 2) {
+                        songArtist = parts[0].trim();
+                        songTitle = parts.slice(1).join(' - ').trim();
+                    } else {
+                        songTitle = source.song.trim();
+                    }
+                }
+                // If artist/title are separate fields and not yet found from 'song'
+                if (!songArtist && source.artist && typeof source.artist === 'string') {
+                    songArtist = source.artist.trim();
+                }
+                if (!songTitle && source.title && typeof source.title === 'string') {
+                    songTitle = source.title.trim();
+                }
+            }
+        }
+
+        // Fallback or alternative structure (e.g. Shoutcast v2 style or simple custom JSON)
+        if (!songTitle && (data.title || data.songtitle || data.song)) {
+            songTitle = data.title || data.songtitle || data.song || null;
+            if (typeof songTitle === 'string') songTitle = songTitle.trim();
+        }
+        if (!songArtist && data.artist) {
+            songArtist = data.artist;
+            if (typeof songArtist === 'string') songArtist = songArtist.trim();
+        }
+        
+        // Final attempt: If title contains " - " and artist is still unknown, parse from title
+        if (songTitle && !songArtist && songTitle.includes(' - ')) {
+            const parts = songTitle.split(' - ');
+            if (parts.length >= 2) {
+                songArtist = parts[0].trim();
+                songTitle = parts.slice(1).join(' - ').trim();
+            }
+        }
         
         dispatch(updateCurrentTrackMetadata({ title: songTitle, artist: songArtist }));
 
       } catch (error) {
         console.warn(`Error fetching or parsing stream metadata from ${METADATA_URL}:`, error);
+        // Optionally dispatch to clear metadata or show "Stream Title"
+        // dispatch(updateCurrentTrackMetadata({ title: null, artist: null }));
       }
     };
 
-    if (isClient && isPlaying && currentTrack && currentTrack.id === 'liveRadioHaryanvi') {
+    if (isClient && isPlaying && currentTrack && currentTrack.id === LIVE_RADIO_TRACK_ID) {
       fetchMetadata(); 
       if (metadataIntervalRef.current) clearInterval(metadataIntervalRef.current);
       metadataIntervalRef.current = setInterval(fetchMetadata, METADATA_FETCH_INTERVAL);
@@ -175,6 +209,10 @@ export function StickyAudioPlayer() {
       if (metadataIntervalRef.current) {
         clearInterval(metadataIntervalRef.current);
         metadataIntervalRef.current = null;
+      }
+      // If not playing the live stream, ensure dynamic metadata is cleared for the live stream track if it was the one playing
+      if (currentTrack && currentTrack.id === LIVE_RADIO_TRACK_ID && (currentTrack.currentSongTitle || currentTrack.currentSongArtist)) {
+         // dispatch(updateCurrentTrackMetadata({ title: null, artist: null })); // This would clear it visually immediately
       }
     }
 
@@ -195,10 +233,10 @@ export function StickyAudioPlayer() {
     }
 
     if (isPlaying) {
-      dispatch(pause()); // This will lead to howlInstance.stop() via the useEffect
+      dispatch(pause());
     } else {
       if (currentTrack) { 
-        dispatch(play()); // This will lead to howlInstance.play() via the useEffect
+        dispatch(play());
       }
     }
   }, [dispatch, isPlaying, currentTrack, playlist]);
@@ -219,7 +257,7 @@ export function StickyAudioPlayer() {
         <div className="flex items-center space-x-3 flex-grow min-w-0"> 
           <Image 
             src={currentTrack.coverArt || "https://placehold.co/40x40.png"} 
-            alt={displayTitle} 
+            alt={displayTitle || "Cover art"} 
             width={40} height={40} 
             className="rounded flex-shrink-0"
             data-ai-hint="radio live stream"
