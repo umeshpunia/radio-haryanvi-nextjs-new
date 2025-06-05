@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button';
 
 interface MobileSubPageHeaderProps {
   title: string;
+  actionButton?: React.ReactNode; // New prop
 }
 
-export function MobileSubPageHeader({ title }: MobileSubPageHeaderProps) {
+export function MobileSubPageHeader({ title, actionButton }: MobileSubPageHeaderProps) {
   const router = useRouter();
 
   return (
@@ -20,7 +21,11 @@ export function MobileSubPageHeader({ title }: MobileSubPageHeaderProps) {
       <h1 className="flex-grow truncate px-2 text-center text-lg font-semibold text-foreground">
         {title}
       </h1>
-      <div className="w-10 shrink-0"></div> {/* Spacer to balance the back button and center title */}
+      {actionButton ? (
+        <div className="shrink-0">{actionButton}</div>
+      ) : (
+        <div className="w-10 shrink-0"></div> // Spacer to balance the back button
+      )}
     </div>
   );
 }

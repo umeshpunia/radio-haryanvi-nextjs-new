@@ -55,10 +55,10 @@ export default function SongRequestPage() {
     setError(null);
     try {
       const fetchedRequests = await getSongRequests();
-      // console.log('Fetched Requests from Service on Page:', fetchedRequests); 
+      // console.log('Fetched Requests from Service on Page:', fetchedRequests);
       setRequests(fetchedRequests);
     } catch (err: any) {
-      console.error('Error in fetchRequests on page:', err); 
+      // console.error('Error in fetchRequests on page:', err);
       setError(err.message || "Failed to load requests.");
       setRequests([]);
     } finally {
@@ -71,18 +71,27 @@ export default function SongRequestPage() {
   }, [fetchRequests]);
 
   const handleFormSuccess = () => {
-    fetchRequests(); 
-    // setIsFormOpen(false); // Form will call setOpen(false) internally if needed
+    fetchRequests();
+    // setIsFormOpen(false); // Form calls setOpen(false) internally if needed
   };
   
   useEffect(() => {
     document.title = "Song Requests - Radio Haryanvi";
   }, []);
 
+  const addRequestIconTrigger = (
+    <DialogTrigger asChild>
+      <Button variant="ghost" size="icon" className="text-primary" aria-label="Add new song request">
+        <PlusCircleIcon className="h-6 w-6" />
+      </Button>
+    </DialogTrigger>
+  );
+
   return (
-    <>
-      <MobileSubPageHeader title="Song Requests" />
-      <div className="container mx-auto px-4 py-8 md:py-0 flex flex-col h-full"> {/* Use flex-col and h-full */}
+    // Dialog root wraps the entire content that can trigger or display the dialog
+    <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+      <MobileSubPageHeader title="Song Requests" actionButton={addRequestIconTrigger} />
+      <div className="container mx-auto px-4 py-8 md:py-0 flex flex-col h-full">
         <header className="mb-8 text-center">
           <ListChecksIcon className="w-20 h-20 text-primary mx-auto mb-6" />
           <h1 className="font-headline text-4xl md:text-5xl font-bold text-primary mb-4">
@@ -93,26 +102,16 @@ export default function SongRequestPage() {
           </p>
         </header>
 
-        <div className="mb-8 flex justify-center">
-          <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-            <DialogTrigger asChild>
-              <Button size="lg">
-                <PlusCircleIcon className="mr-2 h-5 w-5" /> Submit New Request
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Submit Your Song Request</DialogTitle>
-                <DialogDescription>
-                  Fill out the form below with your Farmaish.
-                </DialogDescription>
-              </DialogHeader>
-              <RequestForm onSuccess={handleFormSuccess} setOpen={setIsFormOpen} />
-            </DialogContent>
-          </Dialog>
+        {/* Centered "Submit New Request" button, hidden on mobile (md:flex) */}
+        <div className="mb-8 hidden md:flex justify-center">
+          <DialogTrigger asChild>
+            <Button size="lg">
+              <PlusCircleIcon className="mr-2 h-5 w-5" /> Submit New Request
+            </Button>
+          </DialogTrigger>
         </div>
 
-        <section className="max-w-3xl mx-auto w-full flex-grow overflow-hidden"> {/* Use flex-grow and overflow-hidden */}
+        <section className="max-w-3xl mx-auto w-full flex-grow overflow-hidden">
           {isLoading && <RequestPageSkeleton />}
           {!isLoading && error && (
             <p className="text-center text-destructive py-10">
@@ -125,8 +124,8 @@ export default function SongRequestPage() {
             </p>
           )}
           {!isLoading && !error && requests.length > 0 && (
-             <ScrollArea className="h-full"> {/* Make ScrollArea take full height of its flex parent */}
-              <div className="space-y-4 pr-3 pb-4"> {/* Add padding for scrollbar and bottom */}
+             <ScrollArea className="h-full"> 
+              <div className="space-y-4 pr-3 pb-4">
                 {requests.map((request) => (
                   <RequestDisplayCard key={request.id} request={request} />
                 ))}
@@ -135,7 +134,7 @@ export default function SongRequestPage() {
           )}
         </section>
 
-        <section className="mt-10 text-center max-w-2xl mx-auto pb-4"> {/* Added pb-4 */}
+        <section className="mt-10 text-center max-w-2xl mx-auto pb-4">
           <h2 className="font-headline text-2xl font-semibold mb-4 text-primary">How Requests Work</h2>
           <div className="space-y-3 text-muted-foreground text-left text-sm">
             <p>
@@ -153,6 +152,17 @@ export default function SongRequestPage() {
           </div>
         </section>
       </div>
-    </>
+      
+      {/* DialogContent is a direct child of Dialog, rendered based on isFormOpen state */}
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Submit Your Song Request</DialogTitle>
+          <DialogDescription>
+            Fill out the form below with your Farmaish.
+          </DialogDescription>
+        </DialogHeader>
+        <RequestForm onSuccess={handleFormSuccess} setOpen={setIsFormOpen} />
+      </DialogContent>
+    </Dialog>
   );
 }
