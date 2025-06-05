@@ -39,11 +39,10 @@ const audioPlayerSlice = createSlice({
     },
     setCurrentTrack: (state, action: PayloadAction<Track | null>) => {
       state.currentTrack = action.payload;
-      state.isPlaying = false; 
+      state.isPlaying = false;
       state.currentTime = 0;
-      state.duration = 0; // Duration might be specific to track or Infinity for streams
+      state.duration = 0; 
       if (state.currentTrack) {
-        // Reset dynamic metadata when track changes, ensuring type consistency
         state.currentTrack.currentSongTitle = null;
         state.currentTrack.currentSongArtist = null;
       }
@@ -67,10 +66,10 @@ const audioPlayerSlice = createSlice({
     },
     updateCurrentTrackMetadata: (state, action: PayloadAction<{ title?: string | null; artist?: string | null }>) => {
       if (state.currentTrack) {
-        // If payload provides a title (even empty string), use it; otherwise, keep existing or set to null.
-        state.currentTrack.currentSongTitle = action.payload.title !== undefined ? action.payload.title : state.currentTrack.currentSongTitle;
-        // If payload provides an artist (even empty string), use it; otherwise, keep existing or set to null.
-        state.currentTrack.currentSongArtist = action.payload.artist !== undefined ? action.payload.artist : state.currentTrack.currentSongArtist;
+        // If action.payload.title is undefined, set to null (fallback to station name). Otherwise, use provided value.
+        state.currentTrack.currentSongTitle = action.payload.title !== undefined ? action.payload.title : null;
+        // If action.payload.artist is undefined, set to null (fallback to station artist). Otherwise, use provided value.
+        state.currentTrack.currentSongArtist = action.payload.artist !== undefined ? action.payload.artist : null;
       }
     },
     playNext: (state) => {
@@ -78,10 +77,10 @@ const audioPlayerSlice = createSlice({
       const currentIndex = state.playlist.findIndex(track => track.id === state.currentTrack!.id);
       if (currentIndex !== -1 && currentIndex < state.playlist.length - 1) {
         state.currentTrack = state.playlist[currentIndex + 1];
-      } else { 
+      } else {
         state.currentTrack = state.playlist[0];
       }
-      state.isPlaying = true; 
+      state.isPlaying = true;
       state.currentTime = 0;
       if (state.currentTrack) {
         state.currentTrack.currentSongTitle = null;
@@ -93,10 +92,10 @@ const audioPlayerSlice = createSlice({
       const currentIndex = state.playlist.findIndex(track => track.id === state.currentTrack!.id);
       if (currentIndex > 0) {
         state.currentTrack = state.playlist[currentIndex - 1];
-      } else { 
+      } else {
         state.currentTrack = state.playlist[state.playlist.length - 1];
       }
-      state.isPlaying = true; 
+      state.isPlaying = true;
       state.currentTime = 0;
       if (state.currentTrack) {
         state.currentTrack.currentSongTitle = null;
