@@ -10,8 +10,7 @@ export interface NewRequestData {
   mobile: string;
   address: string;
   farmaish: string;
-  farmaishOn?: Date | null; 
-  time?: string; // This will come from the form's "preferredTime" input
+  time?: string; // User's preferred time/program input
 }
 
 // Interface representing the data structure as it is stored in Firestore
@@ -20,10 +19,8 @@ export interface FirestoreRequestData {
   mobile: string;
   address: string;
   farmaish: string;
-  farmaishOn?: Timestamp | null;
-  time: string; // Default to "Will Be Update" if not provided
-  submittedAt: Timestamp; // System field
-  status: 'pending' | 'approved' | 'played' | 'rejected'; // System field
+  farmaishOn: Timestamp; // Submission timestamp
+  time: string; // User's preferred time/program, or "Will Be Update"
 }
 
 // Interface representing a request object when fetched and used in the client, including its ID
@@ -42,10 +39,8 @@ export async function addSongRequest(data: NewRequestData): Promise<string> {
       mobile: data.mobile,
       address: data.address,
       farmaish: data.farmaish,
-      farmaishOn: data.farmaishOn ? Timestamp.fromDate(data.farmaishOn) : null,
-      time: (data.time && data.time.trim() !== "") ? data.time : "Will Be Update",
-      submittedAt: serverTimestamp() as Timestamp, // Cast for immediate use, Firestore handles server value
-      status: 'pending',
+      farmaishOn: serverTimestamp() as Timestamp, // This is the submission timestamp
+      time: (data.time && data.time.trim() !== "") ? data.time.trim() : "Will Be Update",
     };
 
     const docRef = await addDoc(requestsCollectionRef, firestorePayload);
@@ -60,16 +55,15 @@ export async function addSongRequest(data: NewRequestData): Promise<string> {
 export async function getSongRequests(): Promise<SongRequest[]> {
   try {
     const requestsCollectionRef = collection(dbFirestore, REQUESTS_COLLECTION);
-    // Ensure submittedAt field exists and is a timestamp for ordering
-    const q = query(requestsCollectionRef, orderBy('submittedAt', 'desc'));
+    const q = query(requestsCollectionRef, orderBy('farmaishOn', 'desc'));
     const querySnapshot = await getDocs(q);
 
     const requests: SongRequest[] = [];
     querySnapshot.forEach((doc) => {
       const data = doc.data();
-      // Basic validation to ensure essential fields for ordering and status exist
-      if (!data.submittedAt) {
-        console.warn(`Document ${doc.id} is missing 'submittedAt' field and will be skipped.`);
+      // Ensure farmaishOn exists for robust processing, though query should ensure it
+      if (!data.farmaishOn) {
+        console.warn(`Document ${doc.id} is missing 'farmaishOn' field and will be skipped.`);
         return;
       }
       requests.push({
@@ -78,10 +72,8 @@ export async function getSongRequests(): Promise<SongRequest[]> {
         mobile: data.mobile || '',
         address: data.address || '',
         farmaish: data.farmaish || '',
-        farmaishOn: data.farmaishOn instanceof Timestamp ? data.farmaishOn : null,
-        time: data.time || 'N/A', // Fallback for time
-        submittedAt: data.submittedAt, // Already validated
-        status: data.status || 'pending', // Fallback for status
+        farmaishOn: data.farmaishOn, // Should be a Timestamp from Firestore
+        time: data.time || 'Will Be Update', // Fallback for time
       } as SongRequest); 
     });
     
@@ -92,3 +84,4 @@ export async function getSongRequests(): Promise<SongRequest[]> {
     throw new Error('Could not retrieve song requests. Please try again later.');
   }
 }
+

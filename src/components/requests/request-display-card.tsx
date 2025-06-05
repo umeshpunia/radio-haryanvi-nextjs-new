@@ -3,8 +3,8 @@ import type { SongRequest } from '@/services/request-service';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { format, formatDistanceToNowStrict } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
-import { CalendarDaysIcon, ClockIcon, Music2Icon, PhoneIcon, MapPinIcon, CheckCircle2, XCircle, History } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { CalendarDaysIcon, ClockIcon, Music2Icon, PhoneIcon, MapPinIcon } from 'lucide-react';
+// Badge and status icons (CheckCircle2, XCircle, History) are removed as status is no longer tracked
 
 interface RequestDisplayCardProps {
   request: SongRequest;
@@ -27,23 +27,10 @@ function toDateSafe(value: any): Date | null {
 }
 
 export function RequestDisplayCard({ request }: RequestDisplayCardProps) {
-  const submittedAtDate = toDateSafe(request.submittedAt);
-  const farmaishOnDate = toDateSafe(request.farmaishOn);
+  const submissionDate = toDateSafe(request.farmaishOn); // farmaishOn is now the submission timestamp
 
-  const getStatusBadge = (status?: SongRequest['status']) => {
-    switch (status) {
-      case 'pending':
-        return <Badge variant="outline" className="text-yellow-600 border-yellow-600"><History className="mr-1 h-3 w-3" />Pending</Badge>;
-      case 'approved':
-        return <Badge variant="outline" className="text-green-600 border-green-600"><CheckCircle2 className="mr-1 h-3 w-3" />Approved</Badge>;
-      case 'played':
-        return <Badge variant="outline" className="text-blue-600 border-blue-600"><Music2Icon className="mr-1 h-3 w-3" />Played</Badge>;
-      case 'rejected':
-        return <Badge variant="destructive"><XCircle className="mr-1 h-3 w-3" />Rejected</Badge>;
-      default:
-        return <Badge variant="secondary">Unknown Status</Badge>;
-    }
-  };
+  // Status badge logic is removed
+  // const getStatusBadge = (status?: SongRequest['status']) => { ... };
 
   return (
     <Card className="shadow-md hover:shadow-lg transition-shadow duration-200">
@@ -53,7 +40,7 @@ export function RequestDisplayCard({ request }: RequestDisplayCardProps) {
               <Music2Icon className="mr-2 h-5 w-5 flex-shrink-0" />
               <span className="truncate" title={request.farmaish}>{request.farmaish}</span>
             </CardTitle>
-            {getStatusBadge(request.status)}
+            {/* Status badge removed */}
         </div>
         <CardDescription className="text-xs">
           Requested by: <span className="font-medium">{request.fullName}</span>
@@ -68,13 +55,7 @@ export function RequestDisplayCard({ request }: RequestDisplayCardProps) {
           <MapPinIcon className="mr-2 h-4 w-4 flex-shrink-0" />
           Address: <span className="text-foreground ml-1 truncate">{request.address}</span>
         </div>
-        {farmaishOnDate && (
-          <div className="flex items-center text-muted-foreground">
-            <CalendarDaysIcon className="mr-2 h-4 w-4 flex-shrink-0" />
-            Preferred Date: <span className="text-foreground ml-1">{format(farmaishOnDate, 'PPP')}</span>
-          </div>
-        )}
-        {/* Display the 'time' field directly */}
+        {/* Display the 'time' field (user's preferred time/program) */}
         {request.time && (
           <div className="flex items-center text-muted-foreground">
             <ClockIcon className="mr-2 h-4 w-4 flex-shrink-0" />
@@ -82,13 +63,14 @@ export function RequestDisplayCard({ request }: RequestDisplayCardProps) {
           </div>
         )}
       </CardContent>
-      {submittedAtDate ? (
-        <CardFooter className="text-xs text-muted-foreground pt-2 pb-3 border-t">
-          Submitted: {formatDistanceToNowStrict(submittedAtDate, { addSuffix: true })}
+      {submissionDate ? (
+        <CardFooter className="text-xs text-muted-foreground pt-2 pb-3 border-t flex items-center">
+          <CalendarDaysIcon className="mr-1.5 h-3.5 w-3.5 flex-shrink-0" />
+          Submitted: {formatDistanceToNowStrict(submissionDate, { addSuffix: true })} ({format(submissionDate, 'PPP')})
         </CardFooter>
       ) : (
         <CardFooter className="text-xs text-muted-foreground pt-2 pb-3 border-t">
-          Submitted: Unknown
+          Submission Date: Unknown
         </CardFooter>
       )}
     </Card>

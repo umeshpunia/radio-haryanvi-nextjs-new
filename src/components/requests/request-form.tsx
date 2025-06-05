@@ -16,11 +16,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+// Calendar and related imports are removed as per new requirements
+import { Loader2 } from "lucide-react";
+// import { cn } from "@/lib/utils"; // No longer needed for calendar
+// import { format } from "date-fns"; // No longer needed for calendar
 import { useToast } from "@/hooks/use-toast";
 import { addSongRequest, NewRequestData } from "@/services/request-service";
 import React from "react";
@@ -31,8 +30,7 @@ const requestFormSchema = z.object({
   mobile: z.string().regex(/^\+?[1-9]\d{7,14}$/, { message: "Please enter a valid phone number (e.g., 9876543210 or +919876543210)." }),
   address: z.string().min(5, { message: "Address must be at least 5 characters." }).max(200),
   farmaish: z.string().min(5, { message: "Song request must be at least 5 characters." }).max(500),
-  farmaishOn: z.date().optional().nullable(),
-  // This field is for the user's "Preferred Time / Program" input
+  // farmaishOn (Date picker) field is removed
   preferredTimeInput: z.string().max(50, { message: "Preferred time must not exceed 50 characters." }).optional(), 
 });
 
@@ -54,21 +52,19 @@ export function RequestForm({ onSuccess, setOpen }: RequestFormProps) {
       mobile: "",
       address: "",
       farmaish: "",
-      farmaishOn: null,
-      preferredTimeInput: "", // Matches the schema field name
+      // farmaishOn: null, // Removed
+      preferredTimeInput: "", 
     },
   });
 
   async function onSubmit(data: RequestFormValues) {
     setIsSubmitting(true);
     try {
-      // Prepare data for the service, mapping preferredTimeInput to the `time` field
       const requestData: NewRequestData = {
         fullName: data.fullName,
         mobile: data.mobile,
         address: data.address,
         farmaish: data.farmaish,
-        farmaishOn: data.farmaishOn,
         time: data.preferredTimeInput, // Pass the user's input for "time"
       };
       await addSongRequest(requestData);
@@ -152,51 +148,10 @@ export function RequestForm({ onSuccess, setOpen }: RequestFormProps) {
             </FormItem>
           )}
         />
+        {/* FormField for farmaishOn (Date Picker) is removed */}
         <FormField
           control={form.control}
-          name="farmaishOn"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Preferred Date (Optional)</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value ? (
-                        format(field.value, "PPP") 
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    disabled={(date) => date < new Date(new Date().setHours(0,0,0,0)) } 
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              <FormDescription>
-                Select a date when you'd like your song to be played.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="preferredTimeInput" // Matches Zod schema field name
+          name="preferredTimeInput" 
           render={({ field }) => (
             <FormItem>
               <FormLabel>Preferred Time / Program (Optional)</FormLabel>
@@ -204,7 +159,7 @@ export function RequestForm({ onSuccess, setOpen }: RequestFormProps) {
                 <Input placeholder="e.g., Evening Show, 8 PM - 10 PM" {...field} />
               </FormControl>
               <FormDescription>
-                Let us know if you have a preferred time or program. If blank, time will be "Will Be Update".
+                Let us know if you have a preferred time or program.
               </FormDescription>
               <FormMessage />
             </FormItem>
