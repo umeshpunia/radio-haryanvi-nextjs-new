@@ -150,7 +150,7 @@ export async function fetchPostBySlugApi(slug: string): Promise<Post | null> {
         return null; 
       }
       
-      if (response.ok && contentType.includes("text/html")) {
+      if (response.ok && contentType?.includes("text/html")) {
         console.warn(`Slug '${slug}' likely not found or WordPress returned HTML instead of JSON (URL: ${url}). Check if the post with this slug exists and is published.`);
         return null;
       }
