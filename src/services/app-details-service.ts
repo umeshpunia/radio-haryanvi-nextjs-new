@@ -9,7 +9,7 @@ const APP_DETAILS_COLLECTION = 'rhAppDetails';
 const APP_DETAILS_DOC_ID = 'details';
 
 const FALLBACK_STREAMING_URL = 'https://listen.weareharyanvi.com/listen';
-const FALLBACK_METADATA_URL = 'http://listen.weareharyanvi.com/status-json.xsl';
+const FALLBACK_METADATA_URL = 'https://listen.weareharyanvi.com/status-json.xsl';
 
 export async function getAppDetails(): Promise<AppDetails | null> {
   try {

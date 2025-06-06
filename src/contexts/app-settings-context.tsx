@@ -14,7 +14,7 @@ const defaultAppSettings: AppSettingsContextType = {
   message: '',
   showMessage: false,
   streamingUrl: 'https://listen.weareharyanvi.com/listen', // Default fallback
-  metaDataUrl: 'http://listen.weareharyanvi.com/status-json.xsl', // Default fallback
+  metaDataUrl: 'https://listen.weareharyanvi.com/status-json.xsl', // Default fallback
 };
 
 const AppSettingsContext = createContext<AppSettingsContextType>(defaultAppSettings);

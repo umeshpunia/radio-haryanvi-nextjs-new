@@ -32,7 +32,7 @@ export function StickyAudioPlayer() {
 
   // Define default fallbacks directly
   const LIVE_RADIO_URL = firestoreStreamingUrl || 'https://listen.weareharyanvi.com/listen';
-  const METADATA_URL_CONTEXT = firestoreMetaDataUrl || 'http://listen.weareharyanvi.com/status-json.xsl';
+  const METADATA_URL_CONTEXT = firestoreMetaDataUrl || 'https://listen.weareharyanvi.com/status-json.xsl';
 
 
   const [howlInstance, setHowlInstance] = useState<Howl | null>(null);
