@@ -303,8 +303,8 @@ export function StickyAudioPlayer() {
             data-ai-hint="radio live stream"
           />
           <div className="min-w-0">
-            <p className="text-sm font-semibold truncate max-w-[150px] sm:max-w-[200px] md:max-w-xs">{displayTitle}</p>
-            <p className="text-xs text-muted-foreground truncate max-w-[150px] sm:max-w-[200px] md:max-w-xs">{displayArtist}</p>
+            <p className="text-sm font-semibold truncate max-w-[150px] sm:max-w-[200px] md:max-w-xs">Radio Haryanvi</p>
+            <p className="text-xs text-muted-foreground truncate max-w-[150px] sm:max-w-[200px] md:max-w-xs"> {displayArtist} {displayTitle}</p>
           </div>
         </div>
 
