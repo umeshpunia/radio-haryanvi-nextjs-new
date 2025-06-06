@@ -22,6 +22,18 @@ const nextConfig: NextConfig = {
         hostname: 'blog.weareharyanvi.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'pexels.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.pexels.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },

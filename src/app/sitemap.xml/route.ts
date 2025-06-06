@@ -9,8 +9,9 @@ const generateSitemap = (posts: any[], siteUrl: string) => {
   // Static pages
   const staticPages = [
     { url: '/', changefreq: 'daily', priority: '1.0' },
+    { url: '/blog', changefreq: 'daily', priority: '0.9' },
+    { url: '/artists', changefreq: 'daily', priority: '0.9' },
     { url: '/radio', changefreq: 'monthly', priority: '0.8' },
-    { url: '/blog', changefreq: 'weekly', priority: '0.9' },
     { url: '/donors', changefreq: 'weekly', priority: '0.8' },
     { url: '/programs', changefreq: 'monthly', priority: '0.7' },
     { url: '/about', changefreq: 'monthly', priority: '0.6' },

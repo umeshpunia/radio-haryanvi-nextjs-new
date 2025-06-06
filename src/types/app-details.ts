@@ -7,4 +7,7 @@ export interface AppDetails {
   version: string;
   streamingUrl?: string;
   metaDataUrl?: string;
+  bannerImage?: string;
+  bannerTopText?: string;
+  bannerTextBottom?: string;
 }
